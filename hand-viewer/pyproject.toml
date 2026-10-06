@@ -1,0 +1,45 @@
+[project]
+name = "hand-viewer"
+version = "0.1.0"
+description = "Live desktop viewer: video feed + 3D MANO hand render, with a swappable pose source (camera/WiLoR now, EMG later)"
+authors = [
+    { name = "henry-encord", email = "henry@encord.com" }
+]
+# WiLoR-mini pins torch<=2.5 (we use 2.5.0, as encord-scene does).
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "chumpy",
+    # WiLoR's YOLO hand detector (detector.pt) was pickled with dill; ultralytics doesn't declare it.
+    "dill",
+    "numpy<2",
+    "opencv-python",
+    # Asks macOS for camera access directly; Qt's QCameraPermission can't prompt from a bare python (no Info.plist).
+    "pyobjc-framework-avfoundation>=12.2.2 ; sys_platform == 'darwin'",
+    "pyopengl",
+    # >= 0.13.7 for the HiDPI devicePixelRatio fixes in GLViewWidget.
+    "pyqtgraph>=0.13.7",
+    "pyside6>=6.7",
+    "scipy",
+    "smplx",
+    "torch==2.5.0",
+    "torchvision==0.20.0",
+    "wilor-mini",
+]
+
+[dependency-groups]
+dev = ["pytest"]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+wilor-mini = { git = "https://github.com/warmshao/WiLoR-mini" }
+# MANO_RIGHT.pkl contains chumpy objects; PyPI's chumpy 0.70 breaks on numpy>=1.24, git HEAD doesn't.
+chumpy = { git = "https://github.com/mattloper/chumpy" }
+
+[tool.uv.extra-build-dependencies]
+# chumpy's setup.py imports pip without declaring it.
+chumpy = ["pip"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
