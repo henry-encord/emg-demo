@@ -4257,6 +4257,10 @@
             "type": "model",
             "events": [
               {
+                "timestamp": 0,
+                "uri": "gs://long-horizon-wristband-demo-data/5c5be84a-5476-5359-9a1c-90004a5078e4/meshes/empty.obj"
+              },
+              {
                 "timestamp": 867,
                 "uri": "gs://long-horizon-wristband-demo-data/5c5be84a-5476-5359-9a1c-90004a5078e4/meshes/left/1790376650546534000.obj"
               },
@@ -8037,6 +8041,10 @@
           "right_hand": {
             "type": "model",
             "events": [
+              {
+                "timestamp": 0,
+                "uri": "gs://long-horizon-wristband-demo-data/5c5be84a-5476-5359-9a1c-90004a5078e4/meshes/empty.obj"
+              },
               {
                 "timestamp": 467,
                 "uri": "gs://long-horizon-wristband-demo-data/5c5be84a-5476-5359-9a1c-90004a5078e4/meshes/right/1790376650146540000.obj"
