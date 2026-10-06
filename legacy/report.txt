@@ -1,0 +1,1109 @@
+Provider: S3-compatible endpoint https://648e9264d754b034e3259a2587ab37e5.r2.cloudflarestorage.com
+43 buckets visible to this key; looking for 01_10_2026, 02_10_2026 ...
+  egox-robotics-data-encord: has 01_10_2026, 02_10_2026
+Bucket: egox-robotics-data-encord
+
+=== Bucket layout ===
+  01_10_2026/
+  02_09_2026/
+  02_10_2026/
+  03_08_2026/
+  03_09_2026/
+  04_08_2026/
+  04_09_2026/
+  05_08_2026/
+  06_08_2026/
+  07_08_2026/
+  07_09_2026/
+  08_09_2026/
+  09_09_2026/
+  10_08_2026/
+  10_09_2026/
+  11_08_2026/
+  11_09_2026/
+  12_08_2026/
+  12_09_2026/
+  13_08_2026/
+  14_08_2026/
+  14_09_2026/
+  15_08_2026/
+  15_09_2026/
+  16_09_2026/
+  17_08_2026/
+  17_09_2026/
+  18_08_2026/
+  18_09_2026/
+  19_08_2026/
+  20_08_2026/
+  21_08_2026/
+  21_09_2026/
+  22_09_2026/
+  23_09_2026/
+  24_08_2026/
+  24_09_2026/
+  25_09_2026/
+  26_08_2026/
+  27_08_2026/
+  28_08_2026/
+  29_09_2026/
+  30_09_2026/
+  DataQC/
+  EgoXData/
+  e6_sxr_sample/
+  stereolabs_sample_data/
+
+145053 objects in the whole bucket, 435465.4 GB
+By extension: {'json': 73340, 'mcap': 46747, 'mp4': 23444, 'txt': 1519, '(none)': 3}
+Outside the 6 known sessions: 144747 objects
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/SHA256SUMS.txt
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/manifest.json
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_10_46/b50d35d7a18e50063f9a9423ab4fc1ca/b50d35d7a18e50063f9a9423ab4fc1ca_04_10_46.json
+     10719.9 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_10_46/b50d35d7a18e50063f9a9423ab4fc1ca/b50d35d7a18e50063f9a9423ab4fc1ca_04_10_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_15_46/c875ef63dd12fd9927b847ee3c688cb4/c875ef63dd12fd9927b847ee3c688cb4_04_15_46.json
+     10733.2 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_15_46/c875ef63dd12fd9927b847ee3c688cb4/c875ef63dd12fd9927b847ee3c688cb4_04_15_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_20_46/860183a203c779314e1b5e1d8434c344/860183a203c779314e1b5e1d8434c344_04_20_46.json
+     10805.2 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_20_46/860183a203c779314e1b5e1d8434c344/860183a203c779314e1b5e1d8434c344_04_20_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_25_46/241310ceca1356832e1dc48a948df981/241310ceca1356832e1dc48a948df981_04_25_46.json
+     10554.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_25_46/241310ceca1356832e1dc48a948df981/241310ceca1356832e1dc48a948df981_04_25_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_30_46/139321d7da4cedd19a950a941e597def/139321d7da4cedd19a950a941e597def_04_30_46.json
+     10125.7 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_30_46/139321d7da4cedd19a950a941e597def/139321d7da4cedd19a950a941e597def_04_30_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_35_46/9cc2e79f0160b640bd9e3ad8259403a7/9cc2e79f0160b640bd9e3ad8259403a7_04_35_46.json
+      9231.3 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_35_46/9cc2e79f0160b640bd9e3ad8259403a7/9cc2e79f0160b640bd9e3ad8259403a7_04_35_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_40_46/eda379cead64fa7669887faefa66560f/eda379cead64fa7669887faefa66560f_04_40_46.json
+     10253.1 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_40_46/eda379cead64fa7669887faefa66560f/eda379cead64fa7669887faefa66560f_04_40_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_45_46/e06ded5a96520bfbc041a3bb9d4fa3e7/e06ded5a96520bfbc041a3bb9d4fa3e7_04_45_46.json
+     10796.6 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_45_46/e06ded5a96520bfbc041a3bb9d4fa3e7/e06ded5a96520bfbc041a3bb9d4fa3e7_04_45_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_50_46/39f5ca594dc0d65bbbd987fe07d4989f/39f5ca594dc0d65bbbd987fe07d4989f_04_50_46.json
+      9551.9 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_50_46/39f5ca594dc0d65bbbd987fe07d4989f/39f5ca594dc0d65bbbd987fe07d4989f_04_50_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_55_46/0651a21a376536c705dd2ee23d31fc3d/0651a21a376536c705dd2ee23d31fc3d_04_55_46.json
+     10202.7 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/04_55_46/0651a21a376536c705dd2ee23d31fc3d/0651a21a376536c705dd2ee23d31fc3d_04_55_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_00_46/9d7d0c71e44dc9c943b4d7904b5a6524/9d7d0c71e44dc9c943b4d7904b5a6524_05_00_46.json
+     10600.5 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_00_46/9d7d0c71e44dc9c943b4d7904b5a6524/9d7d0c71e44dc9c943b4d7904b5a6524_05_00_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_05_46/9e747a07ee3db7efb7459f674b19285d/9e747a07ee3db7efb7459f674b19285d_05_05_46.json
+     10632.7 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_05_46/9e747a07ee3db7efb7459f674b19285d/9e747a07ee3db7efb7459f674b19285d_05_05_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_10_46/26fc2e224df481bcf03d836c974bc829/26fc2e224df481bcf03d836c974bc829_05_10_46.json
+     10648.3 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_10_46/26fc2e224df481bcf03d836c974bc829/26fc2e224df481bcf03d836c974bc829_05_10_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_15_46/4dee099f42d95ac2fdae8b602febd225/4dee099f42d95ac2fdae8b602febd225_05_15_46.json
+     10484.2 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_15_46/4dee099f42d95ac2fdae8b602febd225/4dee099f42d95ac2fdae8b602febd225_05_15_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_20_46/cf818cf7d8bf36b27ec3329cedf9fc92/cf818cf7d8bf36b27ec3329cedf9fc92_05_20_46.json
+      8666.2 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_20_46/cf818cf7d8bf36b27ec3329cedf9fc92/cf818cf7d8bf36b27ec3329cedf9fc92_05_20_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_25_46/0b9329982cc48b5753f474e531bff16b/0b9329982cc48b5753f474e531bff16b_05_25_46.json
+     10670.3 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_25_46/0b9329982cc48b5753f474e531bff16b/0b9329982cc48b5753f474e531bff16b_05_25_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_30_46/c78ff90c249d8b881e600b9462816ebe/c78ff90c249d8b881e600b9462816ebe_05_30_46.json
+     10626.3 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_30_46/c78ff90c249d8b881e600b9462816ebe/c78ff90c249d8b881e600b9462816ebe_05_30_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_35_46/c8b4ee9f319701a79e3de48a80373334/c8b4ee9f319701a79e3de48a80373334_05_35_46.json
+     10401.6 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_35_46/c8b4ee9f319701a79e3de48a80373334/c8b4ee9f319701a79e3de48a80373334_05_35_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_40_46/3e5eeb5a70ba8d0d675278828028f69b/3e5eeb5a70ba8d0d675278828028f69b_05_40_46.json
+     11596.1 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_40_46/3e5eeb5a70ba8d0d675278828028f69b/3e5eeb5a70ba8d0d675278828028f69b_05_40_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_45_46/2fc0572161470f99d54001f46a541c40/2fc0572161470f99d54001f46a541c40_05_45_46.json
+      9892.5 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_45_46/2fc0572161470f99d54001f46a541c40/2fc0572161470f99d54001f46a541c40_05_45_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_50_46/87d5db43e5665fd40d8751a2924efaf4/87d5db43e5665fd40d8751a2924efaf4_05_50_46.json
+      8987.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_50_46/87d5db43e5665fd40d8751a2924efaf4/87d5db43e5665fd40d8751a2924efaf4_05_50_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_55_46/e08bd3df3de2b7212719c6b16c96d97d/e08bd3df3de2b7212719c6b16c96d97d_05_55_46.json
+      8759.2 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/05_55_46/e08bd3df3de2b7212719c6b16c96d97d/e08bd3df3de2b7212719c6b16c96d97d_05_55_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/06_00_46/6dbd586fee038ea393a892dfb6c26444/6dbd586fee038ea393a892dfb6c26444_06_00_46.json
+      9261.7 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/06_00_46/6dbd586fee038ea393a892dfb6c26444/6dbd586fee038ea393a892dfb6c26444_06_00_46_merged.mcap
+         0.0 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/06_05_46/2df49b9d0e4b7ba400d750737c1c2524/2df49b9d0e4b7ba400d750737c1c2524_06_05_46.json
+      9429.7 MB  01_10_2026/6abddd4199ef210001dfb8e4/raw/01_10_2026/6abddd4199ef210001dfb8e4/06_05_46/2df49b9d0e4b7ba400d750737c1c2524/2df49b9d0e4b7ba400d750737c1c2524_06_05_46_merged.mcap
+  ... 144697 more
+
+Keys mentioning emg/mano/hand/mesh/wrist/pose/...: 0
+
+=== bakery (6abe2c8699ef210001dfc12a) ===
+--- 01_10_2026/6abe2c8699ef210001dfc12a/manifest.json ---
+{
+  "dataset_id": "b5ec29e70c9a12ee9c920328",
+  "schema_version": "1.0",
+  "generated_at": "2026-10-02T21:04:51.921Z",
+  "sessions": [
+    {
+      "session_id": "6abe2c8699ef210001dfc12a",
+      "date": "01_10_2026",
+      "clips": [
+        {
+          "clip_id": "b5c1abf2db3b6f6f4520096aa3471856",
+          "start_time_utc": "2026-10-01T09:53:44.808Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/01_10_2026/6abe2c8699ef210001dfc12a/09_53_44/b5c1abf2db3b6f6f4520096aa3471856/b5c1abf2db3b6f6f4520096aa3471856_09_53_44_merged.mcap",
+              "sha256": "39d3cc736aec616154961f92a49a6ae525c5febbe333194bb45d5f28c41d041a",
+              "bytes": 8386641147
+            },
+            {
+              "path": "raw/01_10_2026/6abe2c8699ef210001dfc12a/09_53_44/b5c1abf2db3b6f6f4520096aa3471856/b5c1abf2db3b6f6f4520096aa3471856_09_53_44.json",
+              "sha256": "7e421420b26a1fdbac7c4323c8c1c4e4688305fa3d9d588bccb8978351e20130",
+              "bytes": 1289
+            }
+          ]
+        },
+        {
+          "clip_id": "4d4023dfe4bf5f1bbec1c690caff6b37",
+          "start_time_utc": "2026-10-01T09:58:44.808Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/01_10_2026/6abe2c8699ef210001dfc12a/09_58_44/4d4023dfe4bf5f1bbec1c690caff6b37/4d4023dfe4bf5f1bbec1c690caff6b37_09_58_44_merged.mcap",
+              "sha256": "ca3f870e9c8cb0eff987e5e8b6515a1e3aedbc8b7fd5c9125d7e2a473484afc9",
+              "bytes": 8680562552
+            },
+            {
+              "path": "raw/01_10_2026/6abe2c8699ef210001dfc12a/09_58_44/4d4023dfe4bf5f1bbec1c690caff6b37/4d4023dfe4bf5f1bbec1c690caff6b37_09_58_44.json",
+              "sha256": "c7ce042b9460d659c72a21ed9b3fc63da5e911d52e0cafa6cecb0bba2f47daf4",
+              "bytes": 1135
+            }
+          ]
+        },
+        {
+          "clip_id": "bf8391f30b7ac7d455f6549b034c993a",
+          "start_time_utc": "2026-10-01T10:03:44.808Z",
+          "duration_seconds": 94.65,
+          "artifacts": [
+            {
+              "path": "raw/01_10_2026/6abe2c8699ef210001dfc12a/10_03_44/bf8391f30b7ac7d455f6549b034c993a/bf8391f30b7ac7d455f6549b034c993a_10_03_44_merged.mcap",
+              "sha256": "e2712d24d6848a9394de8f64f0f3781bfff2e54d4f326c7e909551d437e4e102",
+              "bytes": 3052930740
+            },
+            {
+              "path": "raw/01_10_2026/6abe2c8699ef210001dfc12a/10_03_44/bf8391f30b7ac7d455f6549b034c993a/bf8391f30b7ac7d455f6549b034c993a_10_03_44.json",
+              "sha256": "dc8c66214e8d752009b7a0c130c6ad25a636b5f41fd01180d394a468078404e0",
+              "bytes": 1001
+            }
+          ]
+        },
+        {
+          "clip_id": "77cd0fcdbd6c930d9a4ea486ed1790f3",
+          "start_time_utc": "2026-10-01T10:14:05.068Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/01_10_2026/6abe2c8699ef210001dfc12a/10_14_05/77cd0fcdbd6c930d9a4ea486ed1790f3/77cd0fcdbd6c930d9a4ea486ed1790f3_10_14_05_merged.mcap",
+              "sha256": "bdaf2b3efd752880fdb2697fa3fe58c94a223917a61681753c85232c480ecfb6",
+              "bytes": 10019479419
+            },
+            {
+              "path": "raw/01_10_2026/6abe2c8699ef210001dfc12a/10_14_05/77cd0fcdbd6c930d9a4ea486ed1790f3/77cd0fcdbd6c930d9a4ea486ed1790f3_10_14_05.json",
+              "sha256": "b5b8b3671fe6ad6faeb1406b40e312c5461dbd0ad79bef30bd83b83a6c838e80",
+              "bytes": 620
+            }
+          ]
+        },
+        {
+          "clip_id": "067781960e6cb4f0522dd862fc4e8815",
+          "start_time_utc": "2026-10-01T10:24:05.068Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/01_10_2026/6abe2c8699ef210001dfc12a/10_24_05/067781960e6cb4f0522dd862fc4e8815/067781960e6cb4f0522dd862fc4e8815_10_24_05_merged.mcap",
+              "sha256": "700c94172bde567cb0c796158a59a56858915c44e8605210a5a141f0f6a45fb2",
+          
+... (9764 more chars)
+--- 01_10_2026/6abe2c8699ef210001dfc12a/raw/01_10_2026/6abe2c8699ef210001dfc12a/metadata/6abe2c8699ef210001dfc12a_metadata.json ---
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-10-02T21:04:51.921Z",
+  "session": {
+    "id": "6abe2c8699ef210001dfc12a",
+    "date": "01_10_2026",
+    "status": "pending_qc",
+    "started_at": "2026-10-01T09:53:44.615Z",
+    "ended_at": "2026-10-01T11:18:34.491Z",
+    "total_duration_seconds": 4429.16,
+    "description": null
+  },
+  "organization": {
+    "id": "6a72106f0359a7000143adf0",
+    "name": "Ferre"
+  },
+  "activity": {
+    "id": "6abe2c8199ef210001dfc129",
+    "name": "\u041f\u0435\u043a\u0430\u0440\u043d\u044f"
+  },
+  "worker": {
+    "id": "6abe2c7699ef210001dfc128",
+    "name": "worker_dfc128",
+    "surname": "",
+    "gender": "male",
+    "height_cm": 178
+  },
+  "agent": {
+    "id": "6a67293aa02862000192f895",
+    "name": "operator_92f895",
+    "surname": ""
+  },
+  "equipment": {
+    "id": "6a6cad6579a14300015e88b5",
+    "name": "008"
+  },
+  "sub_activities": [],
+  "objects": [],
+  "micro_activities": [],
+  "venue": {
+    "id": "venue_samarkand_bakery_01",
+    "city": "Samarkand",
+    "type": "bakery"
+  },
+  "task": {
+    "name": "Bakery: shaping and seeding flatbread dough",
+    "difficulty": "medium",
+    "job": "Flattening proofed dough balls by hand, stamping the centre, sprinkling seeds, setting loaves on trays"
+  },
+  "known_issues": [
+    "session.description not provided by CRM",
+    "1 of 17 clip(s) withheld by QC review"
+  ]
+}
+--- 01_10_2026/6abe2c8699ef210001dfc12a/raw/01_10_2026/6abe2c8699ef210001dfc12a/09_53_44/b5c1abf2db3b6f6f4520096aa3471856/b5c1abf2db3b6f6f4520096aa3471856_09_53_44_merged.mcap (7.8 GB) ---
+  288823 messages, 16 channels, 300.0s, 989 chunks
+  /ego/zed_head/depth/camera_info               sensor_msgs/msg/CameraInfo (ros2msg)                        8999 msgs
+  /ego/zed_head/depth/image_compressed          sensor_msgs/msg/CompressedImage (ros2msg)                   8999 msgs
+  /ego/zed_head/left/camera_info                sensor_msgs/msg/CameraInfo (ros2msg)                        8999 msgs
+  /ego/zed_head/left/image_compressed           foxglove.CompressedVideo (protobuf)                         8999 msgs  <==
+  /ego/zed_head/odom                            nav_msgs/msg/Odometry (ros2msg)                             8999 msgs
+  /ego/zed_head/right/camera_info               sensor_msgs/msg/CameraInfo (ros2msg)                        8999 msgs
+  /ego/zed_head/right/image_compressed          foxglove.CompressedVideo (protobuf)                         8999 msgs  <==
+  /imu/head                                     sensor_msgs/msg/Imu (ros2msg)                              60031 msgs  <==
+  /imu/wrist_left                               sensor_msgs/msg/Imu (ros2msg)                              59878 msgs  <==
+  /imu/wrist_right                              sensor_msgs/msg/Imu (ros2msg)                              60038 msgs  <==
+  /tf                                           tf2_msgs/msg/TFMessage (ros2msg)                            8999 msgs
+  /tf_static                                    tf2_msgs/msg/TFMessage (ros2msg)                             888 msgs
+  /wrist_left/image/camera_info                 sensor_msgs/msg/CameraInfo (ros2msg)                        8999 msgs  <==
+  /wrist_left/image_compressed                  foxglove.CompressedVideo (protobuf)                         8999 msgs  <==
+  /wrist_right/image/camera_info                sensor_msgs/msg/CameraInfo (ros2msg)                        8999 msgs  <==
+  /wrist_right/image_compressed                 foxglove.CompressedVideo (protobuf)                         8999 msgs  <==
+  metadata record: svo2_to_mcap_zed_x_one_gpu
+  metadata record: svo2_to_mcap_zed_x_gpu
+  metadata record: svo2_to_mcap_zed_x_one_gpu
+  (read 1.1 MB of the file)
+
+=== grocery store (6abe432899ef210001dfc464) ===
+--- 01_10_2026/6abe432899ef210001dfc464/manifest.json ---
+{
+  "dataset_id": "b5ec29e70c9a12ee9c920328",
+  "schema_version": "1.0",
+  "generated_at": "2026-10-02T21:04:17.547Z",
+  "sessions": [
+    {
+      "session_id": "6abe432899ef210001dfc464",
+      "date": "01_10_2026",
+      "clips": [
+        {
+          "clip_id": "392ed1816bf847af406ec2699c3348ca",
+          "start_time_utc": "2026-10-01T11:30:29.976Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/01_10_2026/6abe432899ef210001dfc464/11_30_29/392ed1816bf847af406ec2699c3348ca/392ed1816bf847af406ec2699c3348ca_11_30_29_merged.mcap",
+              "sha256": "78d1463791ef7fb3dc06f1ffeff7dbf9f94d4ceb02631af75b42d2490500501b",
+              "bytes": 10167749406
+            },
+            {
+              "path": "raw/01_10_2026/6abe432899ef210001dfc464/11_30_29/392ed1816bf847af406ec2699c3348ca/392ed1816bf847af406ec2699c3348ca_11_30_29.json",
+              "sha256": "53771ab7df722daf79c09a8f9e1f2d00aaf90ff5c73a3f08ad497f7c974058a7",
+              "bytes": 919
+            }
+          ]
+        },
+        {
+          "clip_id": "e980f761e7b5fbe8b0df25768d719455",
+          "start_time_utc": "2026-10-01T11:35:29.976Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/01_10_2026/6abe432899ef210001dfc464/11_35_29/e980f761e7b5fbe8b0df25768d719455/e980f761e7b5fbe8b0df25768d719455_11_35_29_merged.mcap",
+              "sha256": "4d0e2a5baad517cd75ef1d7f3be6f1b72e45e3455b1891798c12d42e2aac51c3",
+              "bytes": 10168174311
+            },
+            {
+              "path": "raw/01_10_2026/6abe432899ef210001dfc464/11_35_29/e980f761e7b5fbe8b0df25768d719455/e980f761e7b5fbe8b0df25768d719455_11_35_29.json",
+              "sha256": "e225ae110ff254ce33d7ea581af0c7b7aae5a28d431d1e1a852d88fabda05868",
+              "bytes": 637
+            }
+          ]
+        },
+        {
+          "clip_id": "42d9707295f9533c9fd488e54743bf51",
+          "start_time_utc": "2026-10-01T11:45:29.976Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/01_10_2026/6abe432899ef210001dfc464/11_45_29/42d9707295f9533c9fd488e54743bf51/42d9707295f9533c9fd488e54743bf51_11_45_29_merged.mcap",
+              "sha256": "ed771ba4b75d8c815b4218a34b0ef2a038daacc17fc491938ebdda0070d6743a",
+              "bytes": 10023251587
+            },
+            {
+              "path": "raw/01_10_2026/6abe432899ef210001dfc464/11_45_29/42d9707295f9533c9fd488e54743bf51/42d9707295f9533c9fd488e54743bf51_11_45_29.json",
+              "sha256": "9d65f42590d3a1a30364fd9206d3c4c83b150375ab9c1d21133117785a818c9f",
+              "bytes": 1837
+            }
+          ]
+        },
+        {
+          "clip_id": "f8a7c991f12f0a83e63827ec6e5f0377",
+          "start_time_utc": "2026-10-01T11:50:29.976Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/01_10_2026/6abe432899ef210001dfc464/11_50_29/f8a7c991f12f0a83e63827ec6e5f0377/f8a7c991f12f0a83e63827ec6e5f0377_11_50_29_merged.mcap",
+              "sha256": "61e1149c1bee9d8e75aeac92bfdf724871ad5ef3ca6f22f083dd601e47851eef",
+              "bytes": 10588400600
+            },
+            {
+              "path": "raw/01_10_2026/6abe432899ef210001dfc464/11_50_29/f8a7c991f12f0a83e63827ec6e5f0377/f8a7c991f12f0a83e63827ec6e5f0377_11_50_29.json",
+              "sha256": "4292a8e2b953e46c1ad5a847980a09f7fb366fe5360bd44693fec11d0762178b",
+              "bytes": 2101
+            }
+          ]
+        },
+        {
+          "clip_id": "55d17ab2cd4831bc7a07fbf8877c9b94",
+          "start_time_utc": "2026-10-01T11:55:29.976Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/01_10_2026/6abe432899ef210001dfc464/11_55_29/55d17ab2cd4831bc7a07fbf8877c9b94/55d17ab2cd4831bc7a07fbf8877c9b94_11_55_29_merged.mcap",
+              "sha256": "03188be83022f757a87a639a2b1c38cade1beb6cbf96abd8a86b8fdfcb3f789b",
+        
+... (5644 more chars)
+--- 01_10_2026/6abe432899ef210001dfc464/raw/01_10_2026/6abe432899ef210001dfc464/metadata/6abe432899ef210001dfc464_metadata.json ---
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-10-02T21:04:17.547Z",
+  "session": {
+    "id": "6abe432899ef210001dfc464",
+    "date": "01_10_2026",
+    "status": "pending_qc",
+    "started_at": "2026-10-01T11:25:30.166Z",
+    "ended_at": "2026-10-01T12:32:55.545Z",
+    "total_duration_seconds": 3752.23,
+    "description": null
+  },
+  "organization": {
+    "id": "6a72106f0359a7000143adf0",
+    "name": "Ferre"
+  },
+  "activity": {
+    "id": "6abe432299ef210001dfc463",
+    "name": "Magazin"
+  },
+  "worker": {
+    "id": "6abe431799ef210001dfc462",
+    "name": "worker_dfc462",
+    "surname": "",
+    "gender": "male",
+    "height_cm": 184
+  },
+  "agent": {
+    "id": "6a67293aa02862000192f895",
+    "name": "operator_92f895",
+    "surname": ""
+  },
+  "equipment": {
+    "id": "6a6cad6579a14300015e88b5",
+    "name": "008"
+  },
+  "sub_activities": [],
+  "objects": [],
+  "micro_activities": [],
+  "venue": {
+    "id": "venue_samarkand_grocery_01",
+    "city": "Samarkand",
+    "type": "grocery store"
+  },
+  "task": {
+    "name": "Grocery store: stocking and arranging shelves",
+    "difficulty": "easy",
+    "job": "Taking packaged goods from boxes and placing or re-arranging them on shelves and hooks"
+  },
+  "known_issues": [
+    "session.description not provided by CRM",
+    "2 of 13 clip(s) withheld by QC review"
+  ]
+}
+--- 01_10_2026/6abe432899ef210001dfc464/raw/01_10_2026/6abe432899ef210001dfc464/11_30_29/392ed1816bf847af406ec2699c3348ca/392ed1816bf847af406ec2699c3348ca_11_30_29_merged.mcap (9.5 GB) ---
+  288833 messages, 16 channels, 300.0s, 1183 chunks
+  /ego/zed_head/depth/camera_info               sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs
+  /ego/zed_head/depth/image_compressed          sensor_msgs/msg/CompressedImage (ros2msg)                   9000 msgs
+  /ego/zed_head/left/camera_info                sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs
+  /ego/zed_head/left/image_compressed           foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  /ego/zed_head/odom                            nav_msgs/msg/Odometry (ros2msg)                             8998 msgs
+  /ego/zed_head/right/camera_info               sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs
+  /ego/zed_head/right/image_compressed          foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  /imu/head                                     sensor_msgs/msg/Imu (ros2msg)                              60032 msgs  <==
+  /imu/wrist_left                               sensor_msgs/msg/Imu (ros2msg)                              59881 msgs  <==
+  /imu/wrist_right                              sensor_msgs/msg/Imu (ros2msg)                              60041 msgs  <==
+  /tf                                           tf2_msgs/msg/TFMessage (ros2msg)                            8998 msgs
+  /tf_static                                    tf2_msgs/msg/TFMessage (ros2msg)                             883 msgs
+  /wrist_left/image/camera_info                 sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs  <==
+  /wrist_left/image_compressed                  foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  /wrist_right/image/camera_info                sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs  <==
+  /wrist_right/image_compressed                 foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  metadata record: svo2_to_mcap_zed_x_one_gpu
+  metadata record: svo2_to_mcap_zed_x_one_gpu
+  metadata record: svo2_to_mcap_zed_x_gpu
+  (read 1.1 MB of the file)
+
+=== carpet washing (6abf36ab4cff0b00018dd824) ===
+--- 02_10_2026/6abf36ab4cff0b00018dd824/manifest.json ---
+{
+  "dataset_id": "b5ec29e70c9a12ee9c920328",
+  "schema_version": "1.0",
+  "generated_at": "2026-10-02T20:30:07.348Z",
+  "sessions": [
+    {
+      "session_id": "6abf36ab4cff0b00018dd824",
+      "date": "02_10_2026",
+      "clips": [
+        {
+          "clip_id": "6af070b6bb48b9758a78e737fa18771c",
+          "start_time_utc": "2026-10-02T04:46:31.304Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf36ab4cff0b00018dd824/04_46_31/6af070b6bb48b9758a78e737fa18771c/6af070b6bb48b9758a78e737fa18771c_04_46_31_merged.mcap",
+              "sha256": "bcc85ee71be183fdbdf9ea1febfeccbd4fd5f72b481913d16d27372cb5b15709",
+              "bytes": 11368307970
+            },
+            {
+              "path": "raw/02_10_2026/6abf36ab4cff0b00018dd824/04_46_31/6af070b6bb48b9758a78e737fa18771c/6af070b6bb48b9758a78e737fa18771c_04_46_31.json",
+              "sha256": "b177ac8b45b14c6fc6054bc5980ff7009e4c1b3e3257b45befa2007ed7746632",
+              "bytes": 712
+            }
+          ]
+        },
+        {
+          "clip_id": "03cf3c190ab9e568ed375bb07a2b5488",
+          "start_time_utc": "2026-10-02T04:51:31.304Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf36ab4cff0b00018dd824/04_51_31/03cf3c190ab9e568ed375bb07a2b5488/03cf3c190ab9e568ed375bb07a2b5488_04_51_31_merged.mcap",
+              "sha256": "982a8f898153e94919e055410237576844d435f14a3d72475af4f8e362ec6d3a",
+              "bytes": 11585845776
+            },
+            {
+              "path": "raw/02_10_2026/6abf36ab4cff0b00018dd824/04_51_31/03cf3c190ab9e568ed375bb07a2b5488/03cf3c190ab9e568ed375bb07a2b5488_04_51_31.json",
+              "sha256": "946d6c0499cc916479a03fe4e31887e335884a4c5c883053aa93a61fb7ff4599",
+              "bytes": 724
+            }
+          ]
+        },
+        {
+          "clip_id": "ab813a767c6b9e7a582c5035a6118ff5",
+          "start_time_utc": "2026-10-02T04:56:31.304Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf36ab4cff0b00018dd824/04_56_31/ab813a767c6b9e7a582c5035a6118ff5/ab813a767c6b9e7a582c5035a6118ff5_04_56_31_merged.mcap",
+              "sha256": "3ae475040e48a53d1a7fc8e6c0cce623c303b81dbdd7acff0793403e5c2cb00c",
+              "bytes": 11855277815
+            },
+            {
+              "path": "raw/02_10_2026/6abf36ab4cff0b00018dd824/04_56_31/ab813a767c6b9e7a582c5035a6118ff5/ab813a767c6b9e7a582c5035a6118ff5_04_56_31.json",
+              "sha256": "febab8c08128c8d8ea3aced2ab62fab301624ba44919556f6e2285b291f0660d",
+              "bytes": 687
+            }
+          ]
+        },
+        {
+          "clip_id": "a1ea7b2ec06a8ce222572bd20b3080f6",
+          "start_time_utc": "2026-10-02T05:01:31.304Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf36ab4cff0b00018dd824/05_01_31/a1ea7b2ec06a8ce222572bd20b3080f6/a1ea7b2ec06a8ce222572bd20b3080f6_05_01_31_merged.mcap",
+              "sha256": "a617f7666d59fa98bc93d3cc22b97eeb2e04b5a792ce0db91ae37dd9ab91d575",
+              "bytes": 12884931637
+            },
+            {
+              "path": "raw/02_10_2026/6abf36ab4cff0b00018dd824/05_01_31/a1ea7b2ec06a8ce222572bd20b3080f6/a1ea7b2ec06a8ce222572bd20b3080f6_05_01_31.json",
+              "sha256": "1c5f537d6c2ffbdfa6bec5fb7f2aa08dc00344483c84e857ca79da7bff874fea",
+              "bytes": 718
+            }
+          ]
+        },
+        {
+          "clip_id": "587a5617b72b227033c9ec4a5dd5abe1",
+          "start_time_utc": "2026-10-02T05:06:31.304Z",
+          "duration_seconds": 82.38,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf36ab4cff0b00018dd824/05_06_31/587a5617b72b227033c9ec4a5dd5abe1/587a5617b72b227033c9ec4a5dd5abe1_05_06_31_merged.mcap",
+              "sha256": "535e2797c218d378d34d0d8fec04622156ff76b40b90948b3029115ce536541a",
+          
+... (10554 more chars)
+--- 02_10_2026/6abf36ab4cff0b00018dd824/raw/02_10_2026/6abf36ab4cff0b00018dd824/metadata/6abf36ab4cff0b00018dd824_metadata.json ---
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-10-02T20:30:07.348Z",
+  "session": {
+    "id": "6abf36ab4cff0b00018dd824",
+    "date": "02_10_2026",
+    "status": "pending_qc",
+    "started_at": "2026-10-02T04:46:31.143Z",
+    "ended_at": "2026-10-02T06:09:15.957Z",
+    "total_duration_seconds": 4683.32,
+    "description": null
+  },
+  "organization": {
+    "id": "69fb356c73500100018c3da8",
+    "name": "\"O'ZIMIZNIKI\" LLC textile mill -- Tashkent"
+  },
+  "activity": {
+    "id": "6abf36a64cff0b00018dd823",
+    "name": "\u041c\u043e\u0439\u043a\u0430 \u041a\u043e\u0432\u0440\u043e\u0432 "
+  },
+  "worker": {
+    "id": "6abf36924cff0b00018dd822",
+    "name": "worker_8dd822",
+    "surname": "",
+    "gender": "male",
+    "height_cm": 186
+  },
+  "agent": {
+    "id": "6a67293aa02862000192f895",
+    "name": "operator_92f895",
+    "surname": ""
+  },
+  "equipment": {
+    "id": "6a6cad6579a14300015e88b5",
+    "name": "008"
+  },
+  "sub_activities": [],
+  "objects": [],
+  "micro_activities": [],
+  "venue": {
+    "id": "venue_tashkent_carpet_wash_01",
+    "city": "Tashkent",
+    "type": "carpet washing service"
+  },
+  "task": {
+    "name": "Carpet washing: measuring, foaming, pressure-washing and rolling carpets",
+    "difficulty": "medium",
+    "job": "Measuring carpets, applying foam, scrubbing and pressure-washing, rolling wet carpets"
+  },
+  "known_issues": [
+    "session.description not provided by CRM"
+  ]
+}
+--- 02_10_2026/6abf36ab4cff0b00018dd824/raw/02_10_2026/6abf36ab4cff0b00018dd824/04_46_31/6af070b6bb48b9758a78e737fa18771c/6af070b6bb48b9758a78e737fa18771c_04_46_31_merged.mcap (10.6 GB) ---
+  288827 messages, 16 channels, 300.0s, 1312 chunks
+  /ego/zed_head/depth/camera_info               sensor_msgs/msg/CameraInfo (ros2msg)                        8999 msgs
+  /ego/zed_head/depth/image_compressed          sensor_msgs/msg/CompressedImage (ros2msg)                   8999 msgs
+  /ego/zed_head/left/camera_info                sensor_msgs/msg/CameraInfo (ros2msg)                        8999 msgs
+  /ego/zed_head/left/image_compressed           foxglove.CompressedVideo (protobuf)                         8999 msgs  <==
+  /ego/zed_head/odom                            nav_msgs/msg/Odometry (ros2msg)                             8999 msgs
+  /ego/zed_head/right/camera_info               sensor_msgs/msg/CameraInfo (ros2msg)                        8999 msgs
+  /ego/zed_head/right/image_compressed          foxglove.CompressedVideo (protobuf)                         8999 msgs  <==
+  /imu/head                                     sensor_msgs/msg/Imu (ros2msg)                              60033 msgs  <==
+  /imu/wrist_left                               sensor_msgs/msg/Imu (ros2msg)                              59882 msgs  <==
+  /imu/wrist_right                              sensor_msgs/msg/Imu (ros2msg)                              60043 msgs  <==
+  /tf                                           tf2_msgs/msg/TFMessage (ros2msg)                            8999 msgs
+  /tf_static                                    tf2_msgs/msg/TFMessage (ros2msg)                             881 msgs
+  /wrist_left/image/camera_info                 sensor_msgs/msg/CameraInfo (ros2msg)                        8999 msgs  <==
+  /wrist_left/image_compressed                  foxglove.CompressedVideo (protobuf)                         8999 msgs  <==
+  /wrist_right/image/camera_info                sensor_msgs/msg/CameraInfo (ros2msg)                        8999 msgs  <==
+  /wrist_right/image_compressed                 foxglove.CompressedVideo (protobuf)                         8999 msgs  <==
+  metadata record: svo2_to_mcap_zed_x_one_gpu
+  metadata record: svo2_to_mcap_zed_x_one_gpu
+  metadata record: svo2_to_mcap_zed_x_gpu
+  (read 1.1 MB of the file)
+
+=== appliance repair (6abf73504cff0b00018dddcd) ===
+--- 02_10_2026/6abf73504cff0b00018dddcd/manifest.json ---
+{
+  "dataset_id": "b5ec29e70c9a12ee9c920328",
+  "schema_version": "1.0",
+  "generated_at": "2026-10-02T20:51:52.777Z",
+  "sessions": [
+    {
+      "session_id": "6abf73504cff0b00018dddcd",
+      "date": "02_10_2026",
+      "clips": [
+        {
+          "clip_id": "6634df94b020b1874c7d65ee3c23eae8",
+          "start_time_utc": "2026-10-02T09:04:57.370Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf73504cff0b00018dddcd/09_04_57/6634df94b020b1874c7d65ee3c23eae8/6634df94b020b1874c7d65ee3c23eae8_09_04_57_merged.mcap",
+              "sha256": "5714f6528f7ecddb00e3e21c23b5170e133d6aaeebe81efdebdc9f294dc0690f",
+              "bytes": 8336372983
+            },
+            {
+              "path": "raw/02_10_2026/6abf73504cff0b00018dddcd/09_04_57/6634df94b020b1874c7d65ee3c23eae8/6634df94b020b1874c7d65ee3c23eae8_09_04_57.json",
+              "sha256": "c0fab94aca28b2d14d02a98fdd47942ce6e128a524f3822c78a8ab2a8a403ade",
+              "bytes": 674
+            }
+          ]
+        },
+        {
+          "clip_id": "45c4da8363eb58d6b5be9df0bbf42c58",
+          "start_time_utc": "2026-10-02T09:09:57.370Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf73504cff0b00018dddcd/09_09_57/45c4da8363eb58d6b5be9df0bbf42c58/45c4da8363eb58d6b5be9df0bbf42c58_09_09_57_merged.mcap",
+              "sha256": "147bfa6fb0f7406019f07a8001d733b120b3caae4f6e6c16e98df230d8d140e4",
+              "bytes": 7298084892
+            },
+            {
+              "path": "raw/02_10_2026/6abf73504cff0b00018dddcd/09_09_57/45c4da8363eb58d6b5be9df0bbf42c58/45c4da8363eb58d6b5be9df0bbf42c58_09_09_57.json",
+              "sha256": "4bd36fbabaae49a5453e82ac5e9be71e96d8c00f359f2d9bac68707a73f864ad",
+              "bytes": 1457
+            }
+          ]
+        },
+        {
+          "clip_id": "318a7625c2681bf5a27f6f5674568246",
+          "start_time_utc": "2026-10-02T09:14:57.370Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf73504cff0b00018dddcd/09_14_57/318a7625c2681bf5a27f6f5674568246/318a7625c2681bf5a27f6f5674568246_09_14_57_merged.mcap",
+              "sha256": "762e2628714c2a8f44157a72268a9fb4ae0f53f8985b2197904aafeab2a95025",
+              "bytes": 6711484988
+            },
+            {
+              "path": "raw/02_10_2026/6abf73504cff0b00018dddcd/09_14_57/318a7625c2681bf5a27f6f5674568246/318a7625c2681bf5a27f6f5674568246_09_14_57.json",
+              "sha256": "a94475f2bc99bb5198c421c4f266d5481171a95d0caa60079e5c84d38328ea9d",
+              "bytes": 679
+            }
+          ]
+        },
+        {
+          "clip_id": "a593d403ce7ce828dbb2c9fc93303bfc",
+          "start_time_utc": "2026-10-02T09:19:57.370Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf73504cff0b00018dddcd/09_19_57/a593d403ce7ce828dbb2c9fc93303bfc/a593d403ce7ce828dbb2c9fc93303bfc_09_19_57_merged.mcap",
+              "sha256": "50c497daee7b40279ab9432ed656e1a7be8392fbaaeb65c22b86d679b420c066",
+              "bytes": 8399454221
+            },
+            {
+              "path": "raw/02_10_2026/6abf73504cff0b00018dddcd/09_19_57/a593d403ce7ce828dbb2c9fc93303bfc/a593d403ce7ce828dbb2c9fc93303bfc_09_19_57.json",
+              "sha256": "5dd83a320dd3f0e01344ea2d0bcc3d1d2940662c1897424648442be19718f7f5",
+              "bytes": 692
+            }
+          ]
+        },
+        {
+          "clip_id": "445367e827c861d023a340a667d8166a",
+          "start_time_utc": "2026-10-02T09:24:57.370Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf73504cff0b00018dddcd/09_24_57/445367e827c861d023a340a667d8166a/445367e827c861d023a340a667d8166a_09_24_57_merged.mcap",
+              "sha256": "3b4f6a060a80021d24ae5f6218fd5f4d3cdcc83a2a1df095efc78f7d5581bce8",
+             
+... (12189 more chars)
+--- 02_10_2026/6abf73504cff0b00018dddcd/raw/02_10_2026/6abf73504cff0b00018dddcd/metadata/6abf73504cff0b00018dddcd_metadata.json ---
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-10-02T20:51:52.777Z",
+  "session": {
+    "id": "6abf73504cff0b00018dddcd",
+    "date": "02_10_2026",
+    "status": "pending_qc",
+    "started_at": "2026-10-02T09:04:57.041Z",
+    "ended_at": "2026-10-02T10:28:57.978Z",
+    "total_duration_seconds": 5635.8,
+    "description": null
+  },
+  "organization": {
+    "id": "69fb356c73500100018c3da8",
+    "name": "\"O'ZIMIZNIKI\" LLC textile mill -- Tashkent"
+  },
+  "activity": {
+    "id": "6abf734c4cff0b00018dddcc",
+    "name": "\u0420\u0435\u043c\u043e\u043d\u0442 \u0442\u0435\u0445\u043d\u0438\u043a\u0438 "
+  },
+  "worker": {
+    "id": "6abf73424cff0b00018dddcb",
+    "name": "worker_8dddcb",
+    "surname": "",
+    "gender": "male",
+    "height_cm": 193
+  },
+  "agent": {
+    "id": "6a67293aa02862000192f895",
+    "name": "operator_92f895",
+    "surname": ""
+  },
+  "equipment": {
+    "id": "6a6cad6579a14300015e88b5",
+    "name": "008"
+  },
+  "sub_activities": [],
+  "objects": [],
+  "micro_activities": [],
+  "venue": {
+    "id": "venue_tashkent_appliance_repair_01",
+    "city": "Tashkent",
+    "type": "appliance repair workshop"
+  },
+  "task": {
+    "name": "Appliance repair: disassembling and re-wiring small household appliances",
+    "difficulty": "hard",
+    "job": "Disassembling hand-held appliances, handling screws and wires, soldering leads, re-assembling"
+  },
+  "known_issues": [
+    "session.description not provided by CRM"
+  ]
+}
+--- 02_10_2026/6abf73504cff0b00018dddcd/raw/02_10_2026/6abf73504cff0b00018dddcd/09_04_57/6634df94b020b1874c7d65ee3c23eae8/6634df94b020b1874c7d65ee3c23eae8_09_04_57_merged.mcap (7.8 GB) ---
+  263986 messages, 16 channels, 300.0s, 980 chunks
+  /ego/zed_head/depth/camera_info               sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs
+  /ego/zed_head/depth/image_compressed          sensor_msgs/msg/CompressedImage (ros2msg)                   9000 msgs
+  /ego/zed_head/left/camera_info                sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs
+  /ego/zed_head/left/image_compressed           foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  /ego/zed_head/odom                            nav_msgs/msg/Odometry (ros2msg)                             9000 msgs
+  /ego/zed_head/right/camera_info               sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs
+  /ego/zed_head/right/image_compressed          foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  /imu/head                                     sensor_msgs/msg/Imu (ros2msg)                              60039 msgs  <==
+  /imu/wrist_left                               sensor_msgs/msg/Imu (ros2msg)                              35025 msgs  <==
+  /imu/wrist_right                              sensor_msgs/msg/Imu (ros2msg)                              60046 msgs  <==
+  /tf                                           tf2_msgs/msg/TFMessage (ros2msg)                            9000 msgs
+  /tf_static                                    tf2_msgs/msg/TFMessage (ros2msg)                             882 msgs
+  /wrist_left/image/camera_info                 sensor_msgs/msg/CameraInfo (ros2msg)                        8997 msgs  <==
+  /wrist_left/image_compressed                  foxglove.CompressedVideo (protobuf)                         8997 msgs  <==
+  /wrist_right/image/camera_info                sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs  <==
+  /wrist_right/image_compressed                 foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  metadata record: svo2_to_mcap_zed_x_one_gpu
+  metadata record: svo2_to_mcap_zed_x_one_gpu
+  metadata record: svo2_to_mcap_zed_x_gpu
+  (read 1.1 MB of the file)
+
+=== phone repair (6abf8e0d4cff0b00018de0f8) ===
+--- 02_10_2026/6abf8e0d4cff0b00018de0f8/manifest.json ---
+{
+  "dataset_id": "b5ec29e70c9a12ee9c920328",
+  "schema_version": "1.0",
+  "generated_at": "2026-10-02T20:29:29.413Z",
+  "sessions": [
+    {
+      "session_id": "6abf8e0d4cff0b00018de0f8",
+      "date": "02_10_2026",
+      "clips": [
+        {
+          "clip_id": "62acb61942bb72fd9135418466b85ab1",
+          "start_time_utc": "2026-10-02T10:58:22.600Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf8e0d4cff0b00018de0f8/10_58_22/62acb61942bb72fd9135418466b85ab1/62acb61942bb72fd9135418466b85ab1_10_58_22_merged.mcap",
+              "sha256": "4a0a57b9cc31c5363adcb61b7bd3bdae36d3d5bad53c6be18782783b3fb3ffad",
+              "bytes": 6800679451
+            },
+            {
+              "path": "raw/02_10_2026/6abf8e0d4cff0b00018de0f8/10_58_22/62acb61942bb72fd9135418466b85ab1/62acb61942bb72fd9135418466b85ab1_10_58_22.json",
+              "sha256": "0b803bced1a8a0f3afac7e0dc521cc6c2937137a6970f6753159a5bc0829897d",
+              "bytes": 1087
+            }
+          ]
+        },
+        {
+          "clip_id": "10e7e403d42c92bf547fb6d7d5223227",
+          "start_time_utc": "2026-10-02T11:03:22.600Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf8e0d4cff0b00018de0f8/11_03_22/10e7e403d42c92bf547fb6d7d5223227/10e7e403d42c92bf547fb6d7d5223227_11_03_22_merged.mcap",
+              "sha256": "aa1985b2ec56f039e3167c1f03ad76be0b41f0bbb78f267cf622508a996f1976",
+              "bytes": 7875218018
+            },
+            {
+              "path": "raw/02_10_2026/6abf8e0d4cff0b00018de0f8/11_03_22/10e7e403d42c92bf547fb6d7d5223227/10e7e403d42c92bf547fb6d7d5223227_11_03_22.json",
+              "sha256": "12f983944c06d879891f82c786d146ea615e559a631c4fca29f489a2ff81d87b",
+              "bytes": 806
+            }
+          ]
+        },
+        {
+          "clip_id": "1eac3dae506820128c6038487f63c15b",
+          "start_time_utc": "2026-10-02T11:08:22.600Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf8e0d4cff0b00018de0f8/11_08_22/1eac3dae506820128c6038487f63c15b/1eac3dae506820128c6038487f63c15b_11_08_22_merged.mcap",
+              "sha256": "2139ef5dca2a25bfb9cec36c999c34c84f8d5f14b3e6bbee4ff951fedaf9996b",
+              "bytes": 9416301963
+            },
+            {
+              "path": "raw/02_10_2026/6abf8e0d4cff0b00018de0f8/11_08_22/1eac3dae506820128c6038487f63c15b/1eac3dae506820128c6038487f63c15b_11_08_22.json",
+              "sha256": "31d0e4ba46b67f7d05d706b6adb19c2f81505665b0d565b590beb13e9788bb4d",
+              "bytes": 1150
+            }
+          ]
+        },
+        {
+          "clip_id": "029a95cd7a564ebc78f823b87d501668",
+          "start_time_utc": "2026-10-02T11:13:22.600Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf8e0d4cff0b00018de0f8/11_13_22/029a95cd7a564ebc78f823b87d501668/029a95cd7a564ebc78f823b87d501668_11_13_22_merged.mcap",
+              "sha256": "1f45358e920cf28aac3450b8c82808985d6876c5e4963c3b05b8e53bea8d42b5",
+              "bytes": 8721624061
+            },
+            {
+              "path": "raw/02_10_2026/6abf8e0d4cff0b00018de0f8/11_13_22/029a95cd7a564ebc78f823b87d501668/029a95cd7a564ebc78f823b87d501668_11_13_22.json",
+              "sha256": "322bfaa2f16ef754693adb25622ab9aaa195e15463c06391cd3e3365a75693c0",
+              "bytes": 701
+            }
+          ]
+        },
+        {
+          "clip_id": "d0ba7c8a98ac83e28cf657dcc1e6aafd",
+          "start_time_utc": "2026-10-02T11:18:22.600Z",
+          "duration_seconds": 200.14,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf8e0d4cff0b00018de0f8/11_18_22/d0ba7c8a98ac83e28cf657dcc1e6aafd/d0ba7c8a98ac83e28cf657dcc1e6aafd_11_18_22_merged.mcap",
+              "sha256": "bbe4e00f4b7659c4c55b867e792c9a8b74e69f2c390823e6bf01879657de7f1a",
+           
+... (8935 more chars)
+--- 02_10_2026/6abf8e0d4cff0b00018de0f8/raw/02_10_2026/6abf8e0d4cff0b00018de0f8/metadata/6abf8e0d4cff0b00018de0f8_metadata.json ---
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-10-02T20:29:29.413Z",
+  "session": {
+    "id": "6abf8e0d4cff0b00018de0f8",
+    "date": "02_10_2026",
+    "status": "pending_qc",
+    "started_at": "2026-10-02T10:58:22.414Z",
+    "ended_at": "2026-10-02T12:16:47.734Z",
+    "total_duration_seconds": 4489.55,
+    "description": null
+  },
+  "organization": {
+    "id": "69fb356c73500100018c3da8",
+    "name": "\"O'ZIMIZNIKI\" LLC textile mill -- Tashkent"
+  },
+  "activity": {
+    "id": "6abf8e094cff0b00018de0f7",
+    "name": "\u0420\u0435\u043c\u043e\u043d\u0442 \u0442\u0435\u043b\u0435\u0444\u043e\u043d\u043e\u0432 "
+  },
+  "worker": {
+    "id": "6abf8e014cff0b00018de0f6",
+    "name": "worker_8de0f6",
+    "surname": "",
+    "gender": "male",
+    "height_cm": 193
+  },
+  "agent": {
+    "id": "6a67293aa02862000192f895",
+    "name": "operator_92f895",
+    "surname": ""
+  },
+  "equipment": {
+    "id": "6a6cad6579a14300015e88b5",
+    "name": "008"
+  },
+  "sub_activities": [],
+  "objects": [],
+  "micro_activities": [],
+  "venue": {
+    "id": "venue_tashkent_phone_repair_01",
+    "city": "Tashkent",
+    "type": "mobile phone repair shop"
+  },
+  "task": {
+    "name": "Phone repair: opening phones, replacing batteries/parts, soldering",
+    "difficulty": "hard",
+    "job": "Opening smartphones, replacing batteries and screens, driving micro-screws, soldering"
+  },
+  "known_issues": [
+    "session.description not provided by CRM",
+    "1 of 16 clip(s) withheld by QC review"
+  ]
+}
+--- 02_10_2026/6abf8e0d4cff0b00018de0f8/raw/02_10_2026/6abf8e0d4cff0b00018de0f8/10_58_22/62acb61942bb72fd9135418466b85ab1/62acb61942bb72fd9135418466b85ab1_10_58_22_merged.mcap (6.3 GB) ---
+  288499 messages, 16 channels, 300.0s, 811 chunks
+  /ego/zed_head/depth/camera_info               sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs
+  /ego/zed_head/depth/image_compressed          sensor_msgs/msg/CompressedImage (ros2msg)                   9000 msgs
+  /ego/zed_head/left/camera_info                sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs
+  /ego/zed_head/left/image_compressed           foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  /ego/zed_head/odom                            nav_msgs/msg/Odometry (ros2msg)                             8830 msgs
+  /ego/zed_head/right/camera_info               sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs
+  /ego/zed_head/right/image_compressed          foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  /imu/head                                     sensor_msgs/msg/Imu (ros2msg)                              60033 msgs  <==
+  /imu/wrist_left                               sensor_msgs/msg/Imu (ros2msg)                              59881 msgs  <==
+  /imu/wrist_right                              sensor_msgs/msg/Imu (ros2msg)                              60040 msgs  <==
+  /tf                                           tf2_msgs/msg/TFMessage (ros2msg)                            8830 msgs
+  /tf_static                                    tf2_msgs/msg/TFMessage (ros2msg)                             885 msgs
+  /wrist_left/image/camera_info                 sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs  <==
+  /wrist_left/image_compressed                  foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  /wrist_right/image/camera_info                sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs  <==
+  /wrist_right/image_compressed                 foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  metadata record: svo2_to_mcap_zed_x_one_gpu
+  metadata record: svo2_to_mcap_zed_x_one_gpu
+  metadata record: svo2_to_mcap_zed_x_gpu
+  (read 1.1 MB of the file)
+
+=== car repair (6abf96f44cff0b00018de228) ===
+--- 02_10_2026/6abf96f44cff0b00018de228/manifest.json ---
+{
+  "dataset_id": "b5ec29e70c9a12ee9c920328",
+  "schema_version": "1.0",
+  "generated_at": "2026-10-02T21:03:50.115Z",
+  "sessions": [
+    {
+      "session_id": "6abf96f44cff0b00018de228",
+      "date": "02_10_2026",
+      "clips": [
+        {
+          "clip_id": "6b6573af13f624ea59d86fceb484073b",
+          "start_time_utc": "2026-10-02T11:42:57.971Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf96f44cff0b00018de228/11_42_57/6b6573af13f624ea59d86fceb484073b/6b6573af13f624ea59d86fceb484073b_11_42_57_merged.mcap",
+              "sha256": "472dbec282daa1d76e13b52e1f06159d26c68e7324f44c0b53c0ae073419a281",
+              "bytes": 11273281080
+            },
+            {
+              "path": "raw/02_10_2026/6abf96f44cff0b00018de228/11_42_57/6b6573af13f624ea59d86fceb484073b/6b6573af13f624ea59d86fceb484073b_11_42_57.json",
+              "sha256": "b9ada6d144c42501fa7a551008730acca15dc1a02b7655115a01cfacb57f5e39",
+              "bytes": 1103
+            }
+          ]
+        },
+        {
+          "clip_id": "e15d0b69fa230f07f3362b8090a96210",
+          "start_time_utc": "2026-10-02T11:47:57.971Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf96f44cff0b00018de228/11_47_57/e15d0b69fa230f07f3362b8090a96210/e15d0b69fa230f07f3362b8090a96210_11_47_57_merged.mcap",
+              "sha256": "edf5ae7e7ad48da97af1a4bbb114712ccc0e20b43fa706de3677a0736bb6ccbf",
+              "bytes": 11376904910
+            },
+            {
+              "path": "raw/02_10_2026/6abf96f44cff0b00018de228/11_47_57/e15d0b69fa230f07f3362b8090a96210/e15d0b69fa230f07f3362b8090a96210_11_47_57.json",
+              "sha256": "9a6eeef7c203f7ee496803dd4416f95dfa6375808c0eff9ab36ba00d13d96474",
+              "bytes": 1410
+            }
+          ]
+        },
+        {
+          "clip_id": "6a781e6968f9821c12f6090e19114e67",
+          "start_time_utc": "2026-10-02T11:52:57.971Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf96f44cff0b00018de228/11_52_57/6a781e6968f9821c12f6090e19114e67/6a781e6968f9821c12f6090e19114e67_11_52_57_merged.mcap",
+              "sha256": "c61bbdd4202b339b7efaf58dd43468d257da759b66610d05cac6cac40011fd93",
+              "bytes": 11379960243
+            },
+            {
+              "path": "raw/02_10_2026/6abf96f44cff0b00018de228/11_52_57/6a781e6968f9821c12f6090e19114e67/6a781e6968f9821c12f6090e19114e67_11_52_57.json",
+              "sha256": "ae1c1980ac06fb03ca1cafdfee9201475471a4a3f044a136ab248b915d3da1cc",
+              "bytes": 1495
+            }
+          ]
+        },
+        {
+          "clip_id": "d3824704064695cd5ccb9a2a495692d9",
+          "start_time_utc": "2026-10-02T11:57:57.971Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf96f44cff0b00018de228/11_57_57/d3824704064695cd5ccb9a2a495692d9/d3824704064695cd5ccb9a2a495692d9_11_57_57_merged.mcap",
+              "sha256": "56cce25bc3cce29c9285feb0a9112f98218a29726ea38d558100efa0e499fbaf",
+              "bytes": 10945517649
+            },
+            {
+              "path": "raw/02_10_2026/6abf96f44cff0b00018de228/11_57_57/d3824704064695cd5ccb9a2a495692d9/d3824704064695cd5ccb9a2a495692d9_11_57_57.json",
+              "sha256": "d6cbda6e581949550590ae850641e25d8d11fec03a078b1cb6f109b856fc6667",
+              "bytes": 662
+            }
+          ]
+        },
+        {
+          "clip_id": "411886f9a65e1d6813f433dcb7f3d6d7",
+          "start_time_utc": "2026-10-02T12:02:57.971Z",
+          "duration_seconds": 300.0,
+          "artifacts": [
+            {
+              "path": "raw/02_10_2026/6abf96f44cff0b00018de228/12_02_57/411886f9a65e1d6813f433dcb7f3d6d7/411886f9a65e1d6813f433dcb7f3d6d7_12_02_57_merged.mcap",
+              "sha256": "0d1e5fbddc36c01e0d29955d231826438fb3fdcb5d25684433ff2dd326381179",
+       
+... (7253 more chars)
+--- 02_10_2026/6abf96f44cff0b00018de228/raw/02_10_2026/6abf96f44cff0b00018de228/metadata/6abf96f44cff0b00018de228_metadata.json ---
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-10-02T21:03:50.115Z",
+  "session": {
+    "id": "6abf96f44cff0b00018de228",
+    "date": "02_10_2026",
+    "status": "pending_qc",
+    "started_at": "2026-10-02T11:38:20.089Z",
+    "ended_at": "2026-10-02T12:44:49.918Z",
+    "total_duration_seconds": 3739.26,
+    "description": null
+  },
+  "organization": {
+    "id": "69fb356c73500100018c3da8",
+    "name": "\"O'ZIMIZNIKI\" LLC textile mill -- Tashkent"
+  },
+  "activity": {
+    "id": "6abf96ee4cff0b00018de227",
+    "name": "\u0420\u0435\u043c\u043e\u043d\u0442"
+  },
+  "worker": {
+    "id": "6abf96e24cff0b00018de226",
+    "name": "worker_8de226",
+    "surname": "",
+    "gender": "unspecified",
+    "height_cm": null
+  },
+  "agent": {
+    "id": "6a67293aa02862000192f895",
+    "name": "operator_92f895",
+    "surname": ""
+  },
+  "equipment": {
+    "id": "6a6cada579a14300015e88bd",
+    "name": "016"
+  },
+  "sub_activities": [],
+  "objects": [],
+  "micro_activities": [],
+  "venue": {
+    "id": "venue_tashkent_auto_repair_01",
+    "city": "Tashkent",
+    "type": "car repair garage"
+  },
+  "task": {
+    "name": "Car repair: engine-bay work, jacking, wheel removal",
+    "difficulty": "hard",
+    "job": "Working in the engine bay, jacking the car, removing and handling wheels, using hand tools"
+  },
+  "known_issues": [
+    "session.description not provided by CRM"
+  ]
+}
+--- 02_10_2026/6abf96f44cff0b00018de228/raw/02_10_2026/6abf96f44cff0b00018de228/11_42_57/6b6573af13f624ea59d86fceb484073b/6b6573af13f624ea59d86fceb484073b_11_42_57_merged.mcap (10.5 GB) ---
+  288669 messages, 16 channels, 300.0s, 1304 chunks
+  /ego/zed_head/depth/camera_info               sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs
+  /ego/zed_head/depth/image_compressed          sensor_msgs/msg/CompressedImage (ros2msg)                   9000 msgs
+  /ego/zed_head/left/camera_info                sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs
+  /ego/zed_head/left/image_compressed           foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  /ego/zed_head/odom                            nav_msgs/msg/Odometry (ros2msg)                             9000 msgs
+  /ego/zed_head/right/camera_info               sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs
+  /ego/zed_head/right/image_compressed          foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  /imu/head                                     sensor_msgs/msg/Imu (ros2msg)                              60003 msgs  <==
+  /imu/wrist_left                               sensor_msgs/msg/Imu (ros2msg)                              59842 msgs  <==
+  /imu/wrist_right                              sensor_msgs/msg/Imu (ros2msg)                              59942 msgs  <==
+  /tf                                           tf2_msgs/msg/TFMessage (ros2msg)                            9000 msgs
+  /tf_static                                    tf2_msgs/msg/TFMessage (ros2msg)                             882 msgs
+  /wrist_left/image/camera_info                 sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs  <==
+  /wrist_left/image_compressed                  foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  /wrist_right/image/camera_info                sensor_msgs/msg/CameraInfo (ros2msg)                        9000 msgs  <==
+  /wrist_right/image_compressed                 foxglove.CompressedVideo (protobuf)                         9000 msgs  <==
+  metadata record: svo2_to_mcap_zed_x_one_gpu
+  metadata record: svo2_to_mcap_zed_x_one_gpu
+  metadata record: svo2_to_mcap_zed_x_gpu
+  (read 1.1 MB of the file)

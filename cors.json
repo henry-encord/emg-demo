@@ -1,0 +1,27 @@
+[
+  {
+    "origin": [
+      "https://app.encord.com",
+      "https://api.encord.com",
+      "https://app.us.encord.com",
+      "https://api.us.encord.com"
+    ],
+    "method": [
+      "GET",
+      "HEAD"
+    ],
+    "responseHeader": [
+      "If-Modified-Since",
+      "If-None-Match",
+      "If-Range",
+      "Range",
+      "Accept-Ranges",
+      "Content-Length",
+      "Content-Range",
+      "Content-Type",
+      "ETag",
+      "Last-Modified"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]

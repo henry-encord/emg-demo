@@ -1,0 +1,17 @@
+settings_version: 0.0.4
+datasets_dir: /Users/henry/Localdev/emg-demo/datasets
+weights_dir: /Users/henry/Localdev/emg-demo/weights
+runs_dir: /Users/henry/Localdev/emg-demo/runs
+uuid: f2714ae98dd8a979ccad81902033fdeafab7522360b1c52cedb82044c7d3db34
+sync: true
+api_key: ''
+openai_api_key: ''
+clearml: true
+comet: true
+dvc: true
+hub: true
+mlflow: true
+neptune: true
+raytune: true
+tensorboard: true
+wandb: true

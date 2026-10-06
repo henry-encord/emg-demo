@@ -1,0 +1,37 @@
+[project]
+name = "emg-demo"
+version = "0.1.0"
+description = "Encord scene (ego video + WiLoR MANO hand meshes + EMG) from Mudra EMG episodes"
+readme = "README.md"
+authors = [
+    { name = "henry-encord", email = "henry@encord.com" }
+]
+# WiLoR-mini pins torch<=2.5 (so 2.5.0, not 2.5.1), which has no wheels past Python 3.12.
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "av",
+    "chumpy",
+    # WiLoR's YOLO hand detector (detector.pt) was pickled with dill; ultralytics doesn't declare it.
+    "dill",
+    "mcap",
+    "mcap-protobuf-support",
+    "mcap-ros2-support",
+    "numpy<2",
+    "opencv-python",
+    "pillow",
+    "torch==2.5.0",
+    "torchvision==0.20.0",
+    "wilor-mini",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+wilor-mini = { git = "https://github.com/warmshao/WiLoR-mini" }
+# MANO_RIGHT.pkl contains chumpy objects; PyPI's chumpy 0.70 breaks on numpy>=1.24, git HEAD doesn't.
+chumpy = { git = "https://github.com/mattloper/chumpy" }
+
+[tool.uv.extra-build-dependencies]
+# chumpy's setup.py imports pip without declaring it.
+chumpy = ["pip"]
