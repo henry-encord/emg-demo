@@ -70,7 +70,7 @@ class FakeFrames:
 
 
 def hand_frame(t_ns):
-    return HandFrame(t_ns=t_ns, hands={"right": HandPose(hand_pose=np.zeros((15, 3)))}, source="fake")
+    return HandFrame(t_ns=t_ns, hands={"right": HandPose(finger_pose=np.zeros((24, 3)))}, source="fake")
 
 
 def video_frame(t_ns):

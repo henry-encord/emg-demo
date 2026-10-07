@@ -1,18 +1,19 @@
 """The pipeline contract. Everything upstream (camera + WiLoR, replay, synthetic, later EMG) produces these types;
-everything downstream (smoothing, MANO, rendering) consumes only these. No Qt, no torch here.
+everything downstream (smoothing, the SOMA hand model, rendering) consumes only these. No Qt, no torch here.
 
 Clock: every `t_ns` is on the host's monotonic clock (`time.monotonic_ns()`), stamped when the underlying sample
 was *captured* (not when inference finished). Sources with their own clock (replay log times, an EMG band) map it
 onto the monotonic clock themselves.
 
-MANO conventions (validated against WiLoR output in encord-scene/out/*/mano.npz to ~1e-7 m):
-- Rotations are axis-angle (rotation vectors). `hand_pose` zeros is a flat open hand (MANO without the pose mean,
-  i.e. `smplx.MANOLayer` / `smplx.MANO(use_pca=False, flat_hand_mean=True)`).
-- Only the right-hand MANO model is used. Right-hand params go straight in. Left-hand params use WiLoR's mirrored
-  convention: negate the y and z components of `global_orient` and every `hand_pose` row, run the right-hand model,
-  then negate vertex x (and reverse face winding). Translation is added after mirroring.
-- `transl` is added to the MANO output vertices (like WiLoR's cam_t / smplx's transl). It is NOT the wrist position:
-  MANO's root joint sits ~10 cm from the MANO origin.
+Hand model: NVIDIA's SOMA hand (py-soma-x `SOMAHandLayer`, 25 joints, see SOMA_JOINTS), with its own left and right
+layers. Conventions, checked in tests/test_hand_model.py:
+- Rotations are axis-angle (rotation vectors), relative to SOMA's T-pose (`absolute_pose=False`): all zeros is the
+  rest hand, flat with the fingers along the model's -x (right hand). Each rotation is about axes of the model frame
+  as they are in the rest pose, not about the joint's own bone axes.
+- Left and right use the same numbers for the same gesture: the left layer's mesh for pose p is exactly the right
+  layer's mesh for p reflected through the wrist (v -> -v). An EMG model can share one decoder across both arms.
+- `wrist_position` is where the wrist joint (SOMA joint 0, the mesh origin) goes, unlike MANO's `transl`.
+Sources that speak MANO (WiLoR, replayed mano.npz) convert in hand_viewer/mano/to_soma.py.
 """
 
 from __future__ import annotations
@@ -24,6 +25,17 @@ from typing import Literal, Mapping, Protocol, runtime_checkable
 import numpy as np
 
 Side = Literal["left", "right"]
+# SOMA hand skeleton (SOMAHandLayer docstring). Index 0 is the wrist; FINGER_JOINTS are rows 1..24, i.e. HandPose's
+# finger_pose rows. Fingers other than the thumb have a metacarpal joint (…1) in the palm before the knuckle (…2).
+SOMA_JOINTS = ("Wrist",
+               "Thumb1", "Thumb2", "Thumb3", "ThumbEnd",
+               "Index1", "Index2", "Index3", "Index4", "IndexEnd",
+               "Middle1", "Middle2", "Middle3", "Middle4", "MiddleEnd",
+               "Ring1", "Ring2", "Ring3", "Ring4", "RingEnd",
+               "Pinky1", "Pinky2", "Pinky3", "Pinky4", "PinkyEnd")
+FINGER_JOINTS = SOMA_JOINTS[1:]
+NUM_FINGER_JOINTS = len(FINGER_JOINTS)   # 24
+NUM_SHAPE = 20                           # SOMA hand identity PCA components
 SIDES: tuple[Side, Side] = ("left", "right")
 
 # "camera": OpenCV camera frame of the video (x right, y down, z forward, metres).
@@ -46,24 +58,24 @@ def _frozen(a, shape, name) -> np.ndarray | None:
 
 @dataclass(frozen=True)
 class HandPose:
-    """One hand at one instant. Only `hand_pose` is required: a source that only knows finger articulation (e.g. an
+    """One hand at one instant. Only `finger_pose` is required: a source that only knows finger articulation (e.g. an
     EMG model, which predicts joint angles relative to the wrist) leaves the rest as None and the renderer places
-    the hand at a fixed per-side anchor (root joint on the anchor)."""
+    the hand at a fixed per-side anchor (wrist on the anchor)."""
 
-    hand_pose: np.ndarray                    # (15, 3) axis-angle per finger joint, MANO joint order; 0 = flat
-    global_orient: np.ndarray | None = None  # (3,) axis-angle wrist rotation in `frame`; None = source has none
-    transl: np.ndarray | None = None         # (3,) metres in `frame`, added to MANO vertices; None = no position
-    betas: np.ndarray | None = None          # (10,) MANO shape; None = mean hand
+    finger_pose: np.ndarray                   # (24, 3) axis-angle, FINGER_JOINTS order, T-pose relative; 0 = flat
+    wrist_orient: np.ndarray | None = None    # (3,) axis-angle, rotates the whole hand in `frame`; None = unknown
+    wrist_position: np.ndarray | None = None  # (3,) metres in `frame`; None = no position
+    shape: np.ndarray | None = None           # (20,) SOMA hand identity coefficients; None = mean hand
     frame: PoseFrame = "camera"
     # 0..1, meaning is per source (WiLoR: detector score; EMG: model confidence). Downstream uses it only for
     # thresholding/display.
     confidence: float = 1.0
 
     def __post_init__(self):
-        object.__setattr__(self, "hand_pose", _frozen(self.hand_pose, (15, 3), "hand_pose"))
-        object.__setattr__(self, "global_orient", _frozen(self.global_orient, (3,), "global_orient"))
-        object.__setattr__(self, "transl", _frozen(self.transl, (3,), "transl"))
-        object.__setattr__(self, "betas", _frozen(self.betas, (10,), "betas"))
+        object.__setattr__(self, "finger_pose", _frozen(self.finger_pose, (NUM_FINGER_JOINTS, 3), "finger_pose"))
+        object.__setattr__(self, "wrist_orient", _frozen(self.wrist_orient, (3,), "wrist_orient"))
+        object.__setattr__(self, "wrist_position", _frozen(self.wrist_position, (3,), "wrist_position"))
+        object.__setattr__(self, "shape", _frozen(self.shape, (NUM_SHAPE,), "shape"))
 
 
 @dataclass(frozen=True)

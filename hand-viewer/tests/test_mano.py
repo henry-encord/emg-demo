@@ -6,8 +6,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from hand_viewer.core.mano import DEFAULT_MODEL_PATH, HandMesh, ManoModel
-from hand_viewer.core.types import SIDES, HandPose
+from hand_viewer.core.types import SIDES
+from hand_viewer.mano.model import DEFAULT_MODEL_PATH, HandMesh, ManoModel
+from hand_viewer.mano.model import ManoParams as HandPose
 
 NPZ = Path(__file__).resolve().parents[2] / "encord-scene/out/sub-P001Fer_task-Glue_ep-005/mano.npz"
 

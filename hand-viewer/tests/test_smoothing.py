@@ -9,9 +9,9 @@ from hand_viewer.core.types import HandFrame, HandPose
 MS = 1_000_000
 
 
-def frame(t_ms, hand_pose=0.0, orient=None, transl=None, betas=None, side="right", source="test"):
-    hp = np.full((15, 3), hand_pose) if np.isscalar(hand_pose) else hand_pose
-    return HandFrame(int(t_ms * MS), {side: HandPose(hp, orient, transl, betas)}, source)
+def frame(t_ms, finger_pose=0.0, orient=None, transl=None, shape=None, side="right", source="test"):
+    hp = np.full((24, 3), finger_pose) if np.isscalar(finger_pose) else finger_pose
+    return HandFrame(int(t_ms * MS), {side: HandPose(hp, orient, transl, shape)}, source)
 
 
 def smoother(**kw):
@@ -42,7 +42,7 @@ def test_step_converges_without_excessive_lag():
     s.push(frame(0, 0.0))
     for k in range(1, 6):  # 5 Hz, like WiLoR
         s.push(frame(200 * k, 0.5))
-        got = s.sample(200 * k * MS).hands["right"].hand_pose[0, 0]
+        got = s.sample(200 * k * MS).hands["right"].finger_pose[0, 0]
         if k == 1:
             assert 0.25 < got < 0.5  # moved most of the way after one sample
     assert got == pytest.approx(0.5, abs=0.02)
@@ -54,7 +54,7 @@ def test_filter_reduces_jitter():
     out = []
     for k in range(200):
         s.push(frame(16 * k, 0.3 + rng.normal(0, 0.05)))
-        out.append(s.sample(16 * k * MS).hands["right"].hand_pose[0, 0])
+        out.append(s.sample(16 * k * MS).hands["right"].finger_pose[0, 0])
     assert np.std(out[50:]) < 0.02
 
 
@@ -65,7 +65,7 @@ def test_hemisphere_flip_in_input_does_not_disturb_filter():
     for k in range(20):
         ang = np.pi - 0.01 if k % 2 else -(np.pi - 0.01)  # +179.4 deg and -179.4 deg: 1.1 deg apart
         s.push(frame(16 * k, orient=axis * ang))
-    o = s.sample(19 * 16 * MS).hands["right"].global_orient
+    o = s.sample(19 * 16 * MS).hands["right"].wrist_orient
     assert abs(np.linalg.norm(o)) > np.pi - 0.02  # stayed near 180 deg instead of averaging to 0
 
 
@@ -74,8 +74,8 @@ def test_interpolates_between_samples_with_slerp():
     s.push(frame(0, orient=[0, 0, 0.0], transl=[0, 0, 0]))
     s.push(frame(100, orient=[0, 0, 1.0], transl=[1, 0, 0]))
     h = s.sample(25 * MS).hands["right"]
-    np.testing.assert_allclose(h.global_orient, [0, 0, 0.25], atol=1e-5)
-    np.testing.assert_allclose(h.transl, [0.25, 0, 0], atol=1e-5)
+    np.testing.assert_allclose(h.wrist_orient, [0, 0, 0.25], atol=1e-5)
+    np.testing.assert_allclose(h.wrist_position, [0.25, 0, 0], atol=1e-5)
 
 
 def test_render_delay_and_hold_newest():
@@ -84,8 +84,8 @@ def test_render_delay_and_hold_newest():
     s.push(frame(100, 1.0))
     f = s.sample(100 * MS)
     assert f.t_ns == 50 * MS and f.source == "test"
-    assert f.hands["right"].hand_pose[0, 0] == pytest.approx(0.5, abs=1e-5)
-    assert s.sample(200 * MS).hands["right"].hand_pose[0, 0] == pytest.approx(1.0, abs=1e-5)  # past newest: hold
+    assert f.hands["right"].finger_pose[0, 0] == pytest.approx(0.5, abs=1e-5)
+    assert s.sample(200 * MS).hands["right"].finger_pose[0, 0] == pytest.approx(1.0, abs=1e-5)  # past newest: hold
 
 
 def test_auto_delay_tracks_interval():
@@ -115,16 +115,16 @@ def test_stale_frames_dropped():
     s = smoother(min_cutoff=1e6)
     s.push(frame(100, 1.0))
     s.push(frame(50, 0.0))
-    assert s.sample(100 * MS).hands["right"].hand_pose[0, 0] == pytest.approx(1.0)
+    assert s.sample(100 * MS).hands["right"].finger_pose[0, 0] == pytest.approx(1.0)
 
 
-def test_betas_frozen_to_median_and_reset_after_absence():
-    s = smoother(freeze_betas_after=3)
+def test_shape_frozen_to_median_and_reset_after_absence():
+    s = smoother(freeze_shape_after=3)
     for k, b in enumerate([1.0, 3.0, 2.0, 100.0, 100.0]):
-        s.push(frame(10 * k, betas=np.full(10, b)))
-    np.testing.assert_allclose(s.sample(40 * MS).hands["right"].betas, 2.0)
-    s.push(frame(3000, betas=np.full(10, 7.0)))  # absent > 2 s: re-estimated
-    np.testing.assert_allclose(s.sample(3000 * MS).hands["right"].betas, 7.0)
+        s.push(frame(10 * k, shape=np.full(20, b)))
+    np.testing.assert_allclose(s.sample(40 * MS).hands["right"].shape, 2.0)
+    s.push(frame(3000, shape=np.full(20, 7.0)))  # absent > 2 s: re-estimated
+    np.testing.assert_allclose(s.sample(3000 * MS).hands["right"].shape, 7.0)
 
 
 def test_none_fields_stay_none():
@@ -132,7 +132,7 @@ def test_none_fields_stay_none():
     s.push(frame(0, 0.1))
     s.push(frame(16, 0.2))
     h = s.sample(8 * MS).hands["right"]
-    assert h.global_orient is None and h.transl is None and h.betas is None
+    assert h.wrist_orient is None and h.wrist_position is None and h.shape is None
 
 
 def test_orientation_appearing_midstream():
@@ -140,8 +140,8 @@ def test_orientation_appearing_midstream():
     s.push(frame(0, orient=[0, 0, 1.0]))
     s.push(frame(16))
     s.push(frame(32, orient=[0, 0, 0.5]))
-    assert s.sample(16 * MS).hands["right"].global_orient is None
-    np.testing.assert_allclose(s.sample(32 * MS).hands["right"].global_orient, [0, 0, 0.5], atol=1e-5)
+    assert s.sample(16 * MS).hands["right"].wrist_orient is None
+    np.testing.assert_allclose(s.sample(32 * MS).hands["right"].wrist_orient, [0, 0, 0.5], atol=1e-5)
 
 
 def test_disabled_is_passthrough():
@@ -156,10 +156,10 @@ def test_disabled_is_passthrough():
 
 def test_two_hands_independent_and_source_change_resets():
     s = smoother(min_cutoff=1e6)
-    s.push(HandFrame(0, {"left": HandPose(np.zeros((15, 3))), "right": HandPose(np.ones((15, 3)))}, "a"))
+    s.push(HandFrame(0, {"left": HandPose(np.zeros((24, 3))), "right": HandPose(np.ones((24, 3)))}, "a"))
     f = s.sample(0)
-    assert f.hands["left"].hand_pose[0, 0] == 0 and f.hands["right"].hand_pose[0, 0] == pytest.approx(1)
-    s.push(HandFrame(-5, {"left": HandPose(np.ones((15, 3)))}, "b"))  # new source: old clock doesn't apply
+    assert f.hands["left"].finger_pose[0, 0] == 0 and f.hands["right"].finger_pose[0, 0] == pytest.approx(1)
+    s.push(HandFrame(-5, {"left": HandPose(np.ones((24, 3)))}, "b"))  # new source: old clock doesn't apply
     assert set(s.sample(-5).hands) == {"left"}
 
 

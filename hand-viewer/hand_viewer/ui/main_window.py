@@ -1,5 +1,5 @@
-"""Main window: Encord header (source pickers), video card | 3D hands card, footer stats; a ~60 Hz timer drains the
-Session and redraws both panes. All source/session lifecycle happens here, on the GUI thread."""
+"""Main window: Encord header (source pickers, settings cog), video card | 3D hands card, footer stats; a ~60 Hz
+timer drains the Session and redraws both panes. The cog hides the pickers, card headers and footer for a clean demo. All source/session lifecycle happens here, on the GUI thread."""
 
 from __future__ import annotations
 
@@ -7,13 +7,13 @@ import math
 from dataclasses import replace
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTimer, QUrl, Signal
+from PySide6.QtCore import QSize, Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (QComboBox, QFileDialog, QHBoxLayout, QLabel, QMainWindow, QMessageBox, QPushButton,
                                QSplitter, QVBoxLayout, QWidget)
 
 from hand_viewer.app.session import Session, SessionState
-from hand_viewer.core.mano import ManoModel
+from hand_viewer.core.hand_model import HandModel
 from hand_viewer.core.smoothing import SmoothingConfig
 from hand_viewer.core.types import VideoFrame, now_ns
 from hand_viewer.sources import camera_permission
@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
     # camera_permission.request answers on an arbitrary thread; this hops back to the GUI thread.
     _camera_access_answered = Signal(bool)
 
-    def __init__(self, source: str = "replay", episode: Path | None = None, device: str = "auto",
+    def __init__(self, source: str = "camera", episode: Path | None = None, device: str = "auto",
                  camera: int | None = None):
         super().__init__()
         self.setWindowTitle("Encord hand viewer")
@@ -58,14 +58,15 @@ class MainWindow(QMainWindow):
         self._last_status = ""
         self._last_error = ""
         self._smoothing_base = SmoothingConfig()
+        self._camera_hfov: float | None = None   # the field of view the camera view was last set up with
 
         self.video = VideoView()
         self.renderer: HandRenderer = PyqtgraphHandRenderer()
-        self.mano: ManoModel | None = None
+        self.hand_model: HandModel | None = None
         try:
-            self.mano = ManoModel()
-        except Exception as e:  # no MANO -> no 3D, but the video and stats still work
-            self._last_error = f"MANO unavailable: {e}"
+            self.hand_model = HandModel()
+        except Exception as e:  # no SOMA model -> no 3D, but the video and stats still work
+            self._last_error = f"SOMA hand model unavailable: {e}"
 
         root = QWidget()
         lay = QVBoxLayout(root)
@@ -75,6 +76,7 @@ class MainWindow(QMainWindow):
         lay.addWidget(self._build_canvas(), 1)
         lay.addWidget(self._build_footer())
         self.setCentralWidget(root)
+        self._set_view(self.view_box.currentIndex())
 
         self._timer = QTimer(self)
         self._timer.setTimerType(Qt.TimerType.PreciseTimer)
@@ -107,6 +109,12 @@ class MainWindow(QMainWindow):
         title.setFont(theme.display_font(16))
         h.addWidget(title)
         h.addStretch(1)
+        # Everything the cog hides lives in `controls`; the logo, title and cog stay.
+        self.controls = QWidget()
+        outer, h = h, QHBoxLayout(self.controls)
+        h.setContentsMargins(0, 0, 0, 0)
+        h.setSpacing(theme.SPACE[4])
+        outer.addWidget(self.controls)
 
         self.source_box = QComboBox()
         for key, label in SOURCES.items():
@@ -151,6 +159,16 @@ class MainWindow(QMainWindow):
         self.camera_box.currentIndexChanged.connect(self._restart)
         self.device_box.currentIndexChanged.connect(self._restart)
         self.episode_box.currentIndexChanged.connect(self._restart)
+
+        self.settings_button = QPushButton()
+        self.settings_button.setObjectName("icon")
+        self.settings_button.setIcon(theme.icon("settings"))
+        self.settings_button.setIconSize(QSize(18, 18))
+        self.settings_button.setCheckable(True)
+        self.settings_button.setChecked(True)
+        self.settings_button.setToolTip("Show or hide the controls")
+        self.settings_button.toggled.connect(self._set_controls_visible)
+        outer.addWidget(self.settings_button)
         return header
 
     def _build_canvas(self) -> QWidget:
@@ -174,6 +192,7 @@ class MainWindow(QMainWindow):
         self.hands_card.add_action(self.smooth_check)
         self.view_box = QComboBox()
         self.view_box.addItems(["Orbit view", "Camera view"])
+        self.view_box.setCurrentIndex(1)
         self.view_box.setToolTip("Camera view looks from the video camera, with its field of view")
         self.view_box.currentIndexChanged.connect(self._set_view)
         self.hands_card.add_action(self.view_box)
@@ -191,7 +210,7 @@ class MainWindow(QMainWindow):
         return canvas
 
     def _build_footer(self) -> QWidget:
-        footer = QWidget()
+        footer = self.footer = QWidget()
         footer.setObjectName("footer")
         f = QHBoxLayout(footer)
         f.setContentsMargins(theme.SPACE[6], theme.SPACE[2], theme.SPACE[6], theme.SPACE[2])
@@ -306,7 +325,7 @@ class MainWindow(QMainWindow):
         self.video.set_frame(None)
         self.video.set_placeholder("The synthetic source has no video; its hands animate on the right."
                                    if source == "synthetic" else "Waiting for video…")
-        self.renderer.update(None, self.mano) if self.mano is not None else None
+        self.renderer.update(None, self.hand_model) if self.hand_model is not None else None
         self._last_status, self._last_error = "", ""
         if source == "camera" and (status := camera_permission.status()) != "granted":
             state = "hasn't been granted yet" if status == "undetermined" else f"is {status}"
@@ -331,9 +350,15 @@ class MainWindow(QMainWindow):
         if self.session is not None:
             self.session.set_smoothing(replace(self._smoothing_base, enabled=on))
 
+    def _set_controls_visible(self, on: bool) -> None:
+        for w in (self.controls, self.video_card.header, self.hands_card.header, self.footer):
+            w.setVisible(on)
+
     def _set_view(self, index: int) -> None:
+        self._camera_hfov = None
         if index == 1:
-            self.renderer.set_camera_view(hfov_deg(self.video.frame))
+            self._camera_hfov = hfov_deg(self.video.frame)
+            self.renderer.set_camera_view(self._camera_hfov)
         else:
             self.renderer.reset_view()
 
@@ -348,8 +373,11 @@ class MainWindow(QMainWindow):
     def _render(self, st: SessionState) -> None:
         if st.video is not None and st.video is not self.video.frame:
             self.video.set_frame(st.video)
-        if self.mano is not None:
-            self.renderer.update(st.hands, self.mano)
+            # The camera view starts before the first frame (60 degrees); match the real lens once it's known.
+            if self._camera_hfov is not None and abs(hfov_deg(st.video) - self._camera_hfov) > 0.1:
+                self._set_view(1)
+        if self.hand_model is not None:
+            self.renderer.update(st.hands, self.hand_model)
             self.counts["renders"] += st.hands is not None
         s = st.stats
         self.counts["video_frames"], self.counts["pose_frames"] = s.video_frames, s.pose_frames
@@ -376,6 +404,6 @@ class MainWindow(QMainWindow):
         super().closeEvent(event)
 
 
-def warn_no_mano(parent: QWidget | None, window: MainWindow) -> None:
-    if window.mano is None and window._last_error:
+def warn_no_hand_model(parent: QWidget | None, window: MainWindow) -> None:
+    if window.hand_model is None and window._last_error:
         QMessageBox.warning(parent, "Hand viewer", window._last_error)

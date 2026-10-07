@@ -3,20 +3,35 @@
 `Replay` exposes a FrameSource and a PoseSource that share one playback clock, so the VideoFrame and the HandFrame
 made from the same image carry the same `t_ns` (the session's "sync video to pose" relies on that). Each source
 runs its own worker thread and can be started/stopped independently; whichever starts first starts the clock.
+
+mano.npz holds WiLoR's MANO parameters. The pose source converts every row to SOMA (hand_viewer/mano/to_soma.py) on
+its worker before playing, which takes a few seconds; the video plays meanwhile, and poses join in step with it. The
+result is cached under CACHE_DIR, keyed on the MANO arrays' contents, so later replays of the episode start at once.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
+import os
 import threading
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from hand_viewer.core.types import SIDES, CameraIntrinsics, FrameSink, HandFrame, HandPose, PoseSink, VideoFrame, now_ns
 
+if TYPE_CHECKING:
+    from hand_viewer.mano.to_soma import ManoToSoma
+
 NAME = "replay"
 DEFAULT_PERIOD_NS = 1_000_000_000 // 15  # gap between loops when the episode has a single row
+CONVERT_CHUNK = 128                       # rows per MANO -> SOMA batch (~0.25 s)
+CACHE_DIR: Path | None = Path.home() / ".cache" / "hand-viewer" / "soma"  # None: no cache
+# Part of the cache key: bump whenever the conversion's output changes (to_soma.py, HandPose conventions).
+CACHE_VERSION = 1
+POSE_FIELDS = ("finger_pose", "wrist_orient", "wrist_position", "confidence")
 
 
 class _Clock:
@@ -114,21 +129,52 @@ class _Player:
 
 
 class ReplayPoseSource(_Player):
-    def __init__(self, clock: _Clock, mano: dict[str, np.ndarray], loop: bool):
+    def __init__(self, clock: _Clock, mano: dict[str, np.ndarray], loop: bool, converter: ManoToSoma | None = None):
         super().__init__(clock, mano["log_time_ns"], loop)
         self._mano = mano
+        self._converter = converter
+        self._poses: dict[str, dict[int, HandPose]] | None = None
 
     def start(self, sink: PoseSink) -> None:
         super().start(sink)
 
+    def _setup(self) -> None:
+        if self._poses is None and self._converter is None:
+            self._poses = load_cached_poses(self._mano)
+        if self._poses is None:
+            self._sink.status("Converting MANO to SOMA…")
+            self.convert()
+        if not self._stop.is_set():
+            self._sink.status(f"Replaying {len(self._log_times)} rows")
+
+    def convert(self) -> dict[str, dict[int, HandPose]]:
+        """SOMA poses for every detected row, {side: {row: HandPose}}; computed once (batched per side). An injected
+        converter bypasses the cache; the default one reads and writes it."""
+        if self._poses is None and self._converter is None:
+            self._poses = load_cached_poses(self._mano)
+        if self._poses is None:
+            from hand_viewer.mano.model import ManoParams
+            from hand_viewer.mano.to_soma import ManoToSoma
+
+            converter = self._converter or ManoToSoma()
+            m, poses = self._mano, {}
+            for side in SIDES:
+                poses[side] = {}
+                rows = np.flatnonzero(m[f"{side}_score"] > 0)  # mano_scene.py zeroes undetected rows, score 0
+                for chunk in np.array_split(rows, max(1, len(rows) // CONVERT_CHUNK)):
+                    if self._stop.is_set():  # chunked so stop() (which joins this thread) doesn't wait seconds
+                        return {}
+                    params = [ManoParams(m[f"{side}_hand_pose"][i], m[f"{side}_global_orient"][i],
+                                         m[f"{side}_cam_t"][i], m[f"{side}_betas"][i]) for i in chunk]
+                    converted = converter.convert(side, params, m[f"{side}_score"][chunk])
+                    poses[side].update(zip(chunk.tolist(), converted))
+            self._poses = poses
+            if self._converter is None:
+                save_cached_poses(self._mano, poses)
+        return self._poses
+
     def hand_frame(self, i: int, t_ns: int) -> HandFrame:
-        m, hands = self._mano, {}
-        for side in SIDES:
-            score = float(m[f"{side}_score"][i])
-            if score > 0:  # mano_scene.py leaves undetected rows zeroed with score 0
-                hands[side] = HandPose(
-                    hand_pose=m[f"{side}_hand_pose"][i].reshape(15, 3), global_orient=m[f"{side}_global_orient"][i],
-                    transl=m[f"{side}_cam_t"][i], betas=m[f"{side}_betas"][i], frame="camera", confidence=score)
+        hands = {side: rows[i] for side, rows in self.convert().items() if i in rows}
         return HandFrame(t_ns=t_ns, hands=hands, source=NAME)
 
     def _emit(self, t_ns, loop, i, item) -> None:
@@ -184,6 +230,65 @@ def decode_frame(path: Path, camera: dict, max_long_side: int | None) -> tuple[n
     return rgb, intrinsics
 
 
+def cache_path(mano: dict[str, np.ndarray]) -> Path | None:
+    if CACHE_DIR is None:
+        return None
+    h = hashlib.sha1(f"v{CACHE_VERSION}".encode())
+    for key in sorted(mano):
+        h.update(key.encode())
+        h.update(np.ascontiguousarray(mano[key]).tobytes())
+    return CACHE_DIR / f"{h.hexdigest()}.npz"
+
+
+def load_cached_poses(mano: dict[str, np.ndarray]) -> dict[str, dict[int, HandPose]] | None:
+    """The poses `save_cached_poses` stored for these MANO arrays; None when absent or unreadable."""
+    path = cache_path(mano)
+    if path is None or not path.is_file():
+        return None
+    try:
+        with np.load(path) as npz:
+            poses = {}
+            for side in SIDES:
+                rows = npz[f"{side}_rows"]
+                fp, orient, pos, conf = (npz[f"{side}_{f}"] for f in POSE_FIELDS)
+                poses[side] = {int(r): HandPose(fp[j], _none_if_nan(orient[j]), _none_if_nan(pos[j]), None, "camera",
+                                                float(conf[j])) for j, r in enumerate(rows)}
+            return poses
+    except Exception:  # noqa: BLE001 - a bad cache file just means converting again
+        return None
+
+
+def save_cached_poses(mano: dict[str, np.ndarray], poses: dict[str, dict[int, HandPose]]) -> None:
+    path = cache_path(mano)
+    if path is None:
+        return
+    arrays = {}
+    for side in SIDES:
+        rows = sorted(poses[side])
+        ps = [poses[side][r] for r in rows]
+        arrays[f"{side}_rows"] = np.array(rows, np.int64)
+        arrays[f"{side}_finger_pose"] = np.array([p.finger_pose for p in ps], np.float32).reshape(-1, 24, 3)
+        arrays[f"{side}_wrist_orient"] = np.array([_nan_if_none(p.wrist_orient) for p in ps], np.float32).reshape(-1, 3)
+        arrays[f"{side}_wrist_position"] = np.array([_nan_if_none(p.wrist_position) for p in ps],
+                                                    np.float32).reshape(-1, 3)
+        arrays[f"{side}_confidence"] = np.array([p.confidence for p in ps], np.float32)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(f".{os.getpid()}.tmp.npz")
+        np.savez(tmp, **arrays)
+        os.replace(tmp, path)  # atomic: a reader never sees half a file
+    except OSError:
+        pass  # read-only home etc.: replay still works, it just converts every time
+
+
+def _nan_if_none(v):
+    return np.full(3, np.nan) if v is None else v
+
+
+def _none_if_nan(v):
+    return None if np.isnan(v).any() else v
+
+
 MANO_KEYS = {"global_orient": 3, "hand_pose": 45, "betas": 10, "cam_t": 3, "score": None}
 
 
@@ -218,7 +323,7 @@ class Replay:
     required; without frames/ the frame source reports an error when started and the pose source still works."""
 
     def __init__(self, episode_dir: Path | str, *, speed: float = 1.0, loop: bool = True,
-                 max_long_side: int | None = 960):
+                 max_long_side: int | None = 960, converter: ManoToSoma | None = None):
         episode_dir = Path(episode_dir)
         if not episode_dir.is_dir():
             raise FileNotFoundError(f"episode dir {episode_dir} does not exist")
@@ -246,5 +351,5 @@ class Replay:
         self.num_rows = len(mano["log_time_ns"])
         self.num_frames = len(frames or [])
         self.clock = _Clock(mano["log_time_ns"], speed)
-        self.pose_source = ReplayPoseSource(self.clock, mano, loop)
+        self.pose_source = ReplayPoseSource(self.clock, mano, loop, converter)
         self.frame_source = ReplayFrameSource(self.clock, frames, camera, loop, max_long_side, episode_dir)

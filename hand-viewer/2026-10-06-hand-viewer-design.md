@@ -1,7 +1,11 @@
-# Live MANO hand viewer (desktop) — design
+# Live hand viewer (desktop) — design
 
 Date: 2026-10-06
-Status: building (revised after two reviews, 2026-10-06)
+Status: building (revised after two reviews, 2026-10-06; hand model switched from MANO to SOMA, 2026-10-06)
+
+> **Hand model is now SOMA.** The contract, renderer and smoothing use NVIDIA's SOMA hand (py-soma-x), not MANO.
+> See "SOMA switch" at the end. MANO remains only inside the WiLoR and replay sources, which convert to SOMA.
+> Sections below that describe the contract as MANO are kept as the history of the v1 build.
 
 ## Goal
 
@@ -254,3 +258,63 @@ Two reviews (architecture/EMG readiness, technical feasibility). Applied:
    known (emg2pose uses a 20-DoF UmeTrack skeleton, so this is retargeting).
 9. Deferred: a generic HandFrame recorder/log format (Replay reads `mano.npz` for now), and an
    `opencv-python-headless` swap for the Linux box.
+
+## SOMA switch (2026-10-06)
+
+The hand model behind the contract is now NVIDIA's SOMA hand ([SOMA-X](https://github.com/NVlabs/SOMA-X),
+`py-soma-x`, Apache-2.0). Why: SOMA's 25-joint skeleton (metacarpals included) is a better target for an EMG
+band's joint angles than MANO's 16. The renderer no longer needs MANO's non-commercial model. And SOMA has its own
+left and right hands.
+
+**Contract (`core/types.py`).** `HandPose(finger_pose (24,3), wrist_orient (3,)|None, wrist_position (3,)|None,
+shape (20,)|None, frame, confidence)`. Joint order is `SOMA_JOINTS` (wrist, then thumb 1–3+end, then
+index/middle/ring/pinky 1–4+end).
+- Rotations are axis-angle and T-pose relative; zeros is the flat rest hand. Every rotation, wrist included, is
+  about the model axes as they are at rest. SOMA's layer takes them in the wrist's tilted rest frame O₀;
+  `HandModel` conjugates by O₀ so sources never see that frame.
+- Left and right use the same numbers for the same gesture. The left mesh is exactly the right mesh reflected
+  through the wrist (v → −v).
+- `wrist_position` is the wrist joint itself, not MANO's vertex offset.
+- Measured: `HandModel.forward` takes ~0.3 ms per hand on CPU (Warp), with 2,859 vertices per hand.
+
+**MANO → SOMA (`mano/to_soma.py`).** This is used by `WilorSource` (on its own conversion thread, see Performance below) and
+`Replay` (whole episode on the pose worker before playback; ~2 s/1000 rows, chunked so `stop()` stays prompt, and
+cached, see below).
+1. Pose the MANO mesh with the right-hand model. Left params get y/z negated first.
+2. Map it onto SOMA topology with SOMA-X's barycentric map.
+3. Fit SOMA rotations with `PoseInversion` (analytical + 1 Gauss-Newton step).
+
+Left hands use the right fit, turned 180° about x at the wrist, with the wrist position mirrored in x. There is no
+`MANO_LEFT.pkl`; the turn is exact, because SOMA's left mesh is the right one reflected through the wrist.
+
+Accuracy on the Glue episode: median 5.5 mm, p90 10 mm, SOMA vertices to WiLoR's MANO vertices, both sides.
+About 3 mm of that is the fit itself; the rest is shape, because the SOMA mean hand is rendered and MANO betas
+aren't converted. Re-preparing the fit for new betas costs 16 ms, so live-sized calls (one or two hands) keep the
+prepared betas until they move by more than 0.25.
+
+**Layout changes.** `core/mano.py` moved to `mano/model.py` (`ManoParams` replaces the MANO `HandPose`).
+`core/hand_model.py` is new. The synthetic source flexes SOMA joints. Tests: `test_hand_model.py` pins the
+conventions above, and `test_to_soma.py` checks conversion against `mano.npz`.
+
+**Not done.** MANO betas → SOMA shape.
+
+### Performance pass (2026-10-06)
+
+Per live frame with two hands, before (M4 Pro, recorded frames): YOLO 22 ms, WiLoR 173 ms, conversion 16 ms, SOMA
+mesh 0.9 ms. WiLoR is ~80% and was left alone; three smaller changes plus a replay cache:
+- **Both hands in one fit** (`ManoToSoma.convert_many`): every hand is fitted with the right model, so a frame's
+  hands share one `PoseInversion` call. 11.6 → 7.7 ms for two hands; the time is mostly Python/Warp launch overhead.
+- **Conversion thread.** `WilorSource` runs YOLO + WiLoR on "wilor" and conversion + emit on "wilor-soma", joined
+  by a newest-wins slot. Conversion overlaps the next frame's GPU inference instead of adding to it. Either thread
+  failing reports to the sink and stops both. `stats.total_ms` is still one frame's detect + pose + convert.
+- **YOLO at 416 px** (`DETECT_IMGSZ`, default 640): ~28 → ~18 ms, same hands found on 350 frames, WiLoR vertices
+  moved by a median 2.4 mm (max 25 mm) through the slightly different boxes. Rejected: skipping YOLO and reusing
+  the box of the last pose's projected mesh. It saved more but occasionally lost the hand by metres.
+- Measured end to end (frames fed at 30 fps): 4.4 → 4.85 pose updates/s, ~10%. Less than the parts add up to:
+  the conversion thread competes with WiLoR's thread for the GIL (conversion takes 12–17 ms there rather than 8).
+- **Replay cache.** Converted poses are stored in `~/.cache/hand-viewer/soma/<sha1>.npz`, keyed on the MANO arrays'
+  contents and `CACHE_VERSION` (bump it when the conversion's output changes). Glue episode: ~7 s on first start
+  (including loading SOMA), 10 ms after. Unreadable files reconvert; a cancelled conversion writes nothing; an
+  injected converter bypasses the cache.
+
+The remaining lever is WiLoR itself (e.g. a Core ML export); fp16 on MPS was already measured as no gain.

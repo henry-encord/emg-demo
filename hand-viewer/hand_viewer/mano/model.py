@@ -1,4 +1,14 @@
-"""MANO forward pass: HandPose -> mesh. The one place pose parameters become vertices (see types.py for conventions).
+"""MANO forward pass: ManoParams -> mesh. Only WiLoR and replayed mano.npz files speak MANO; `to_soma` converts their
+output to the app's SOMA contract (core/types.py), so nothing past the pose sources sees these types.
+
+MANO conventions (validated against WiLoR output in encord-scene/out/*/mano.npz to ~1e-7 m):
+- Rotations are axis-angle (rotation vectors). `hand_pose` zeros is a flat open hand (MANO without the pose mean,
+  i.e. `smplx.MANOLayer` / `smplx.MANO(use_pca=False, flat_hand_mean=True)`).
+- Only the right-hand MANO model is used. Right-hand params go straight in. Left-hand params use WiLoR's mirrored
+  convention: negate the y and z components of `global_orient` and every `hand_pose` row, run the right-hand model,
+  then negate vertex x (and reverse face winding). Translation is added after mirroring.
+- `transl` is added to the MANO output vertices (like WiLoR's cam_t / smplx's transl). It is NOT the wrist position:
+  MANO's root joint sits ~10 cm from the MANO origin.
 
 Reproduces WiLoR's MANO layer (smplx `MANOLayer`, no pose mean, MANO 16 joints + 5 fingertip vertices in OpenPose
 order) without importing wilor_mini. Runs on CPU in float32: a hand is ~800 vertices, so a GPU round trip would cost
@@ -17,7 +27,7 @@ from typing import Sequence
 import numpy as np
 import torch
 
-from hand_viewer.core.types import HandPose, Side
+from hand_viewer.core.types import Side
 
 DEFAULT_MODEL_PATH = Path.home() / ".cache/wilor-mini/pretrained_models/MANO_RIGHT.pkl"
 # Fingertip vertices (thumb, index, middle, ring, pinky), as smplx.vertex_ids["mano"] and WiLoR use.
@@ -27,6 +37,22 @@ MANO_TO_OPENPOSE = (0, 13, 14, 15, 16, 1, 2, 3, 17, 4, 5, 6, 18, 10, 11, 12, 19,
 # Left hands are the right model mirrored in x: an axis-angle r maps to (r_x, -r_y, -r_z) under that reflection.
 _MIRROR_ROT = torch.tensor([1.0, -1.0, -1.0])
 _MIRROR_POS = np.array([-1.0, 1.0, 1.0], np.float32)
+
+
+@dataclass(frozen=True)
+class ManoParams:
+    """One hand's MANO parameters, in the side's own convention (see above)."""
+
+    hand_pose: np.ndarray                    # (15, 3) axis-angle per finger joint; 0 = flat
+    global_orient: np.ndarray | None = None  # (3,) axis-angle wrist rotation
+    transl: np.ndarray | None = None         # (3,) metres, added to the vertices
+    betas: np.ndarray | None = None          # (10,) shape; None = mean hand
+
+    def __post_init__(self):
+        for name, shape in (("hand_pose", (15, 3)), ("global_orient", (3,)), ("transl", (3,)), ("betas", (10,))):
+            a = getattr(self, name)
+            if a is not None:
+                object.__setattr__(self, name, np.asarray(a, np.float32).reshape(shape))
 
 
 @dataclass
@@ -65,13 +91,13 @@ class ManoModel:
         """(1538, 3) int32, outward-facing winding for `side`."""
         return self._faces[side]
 
-    def forward(self, side: Side, pose: HandPose, *, default_orient: np.ndarray | None = None,
+    def forward(self, side: Side, pose: ManoParams, *, default_orient: np.ndarray | None = None,
                 anchor: np.ndarray | None = None) -> HandMesh:
         """Mesh for one hand. `global_orient` None -> `default_orient` (same side convention as the pose; zeros if
         None). `transl` None and `anchor` given -> translated so the root joint (joints[0], the wrist) is on it."""
         return self.forward_many(side, [pose], default_orient=default_orient, anchor=anchor)[0]
 
-    def forward_many(self, side: Side, poses: Sequence[HandPose], *, default_orient: np.ndarray | None = None,
+    def forward_many(self, side: Side, poses: Sequence[ManoParams], *, default_orient: np.ndarray | None = None,
                      anchor: np.ndarray | None = None) -> list[HandMesh]:
         """Batched `forward` for many poses of one side (e.g. a whole replay), one lbs call."""
         n = len(poses)

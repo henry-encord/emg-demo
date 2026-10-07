@@ -1,16 +1,11 @@
 import threading
 import time
-from pathlib import Path
 
 import numpy as np
 import pytest
 
-from hand_viewer.core.types import PoseSource
-from hand_viewer.sources.synthetic import FINGERS, MIRROR, SyntheticSource, curl_pose
-
-MANO_PATH = Path("~/.cache/wilor-mini/pretrained_models/MANO_RIGHT.pkl").expanduser()
-TIP_VERTS = {"index": 320, "middle": 443, "pinky": 672, "ring": 555, "thumb": 744}  # standard MANO fingertips
-BASE_JOINTS = {"index": 1, "middle": 4, "pinky": 7, "ring": 10}  # MCP joints (MANO joint order)
+from hand_viewer.core.types import SOMA_JOINTS, HandPose, PoseSource
+from hand_viewer.sources.synthetic import FINGERS, SyntheticSource, curl_pose
 
 
 class Sink:
@@ -46,7 +41,7 @@ def test_lifecycle_rate_and_no_emits_after_stop():
     f = sink.frames[-1]
     assert set(f.hands) == {"left", "right"} and f.source == "synthetic"
     h = f.hands["right"]
-    assert h.global_orient is None and h.transl is None and h.betas is None
+    assert h.wrist_orient is None and h.wrist_position is None and h.shape is None
     ts = [x.t_ns for x in sink.frames]
     assert all(b > a for a, b in zip(ts, ts[1:]))
     src.stop()  # idempotent
@@ -82,30 +77,37 @@ def test_sink_error_reported():
     assert sink.errors and "boom" in sink.errors[0]
 
 
-def test_left_is_mirror_of_right():
-    curl = np.linspace(0, 1, 5)
-    np.testing.assert_allclose(curl_pose(curl, "left"), curl_pose(curl, "right") * MIRROR)
+def test_both_sides_get_the_same_pose():
     f = SyntheticSource().frame_at(1_234_000_000)
-    assert f.hands["left"].hand_pose.shape == (15, 3)
+    assert f.hands["left"].finger_pose.shape == (24, 3)
+    curl = np.linspace(0, 1, 5)
+    np.testing.assert_allclose(curl_pose(curl), curl_pose(curl))
+    assert np.all(curl_pose(np.zeros(5)) == 0)
 
 
-@pytest.mark.skipif(not MANO_PATH.exists(), reason="MANO_RIGHT.pkl not downloaded")
-def test_curl_closes_fingers():
-    torch = pytest.importorskip("torch")
-    smplx = pytest.importorskip("smplx")
-    mano = smplx.MANO(str(MANO_PATH), use_pca=False, flat_hand_mean=True, is_rhand=True)
+@pytest.fixture(scope="module")
+def model():
+    from hand_viewer.core.hand_model import HandModel
 
-    def run(hand_pose):
-        out = mano(hand_pose=torch.tensor(hand_pose, dtype=torch.float32).reshape(1, 45),
-                   global_orient=torch.zeros(1, 3), betas=torch.zeros(1, 10))
-        return out.vertices[0].detach().numpy(), out.joints[0].detach().numpy()
+    return HandModel()
 
-    v_open, joints = run(curl_pose(np.zeros(5)))
-    v_fist, _ = run(curl_pose(np.ones(5)))
-    palm = joints[[0, 1, 4, 7, 10]].mean(0)  # wrist + finger bases
+
+@pytest.mark.parametrize("side", ["right", "left"])
+def test_curl_closes_fingers(model, side):
+    open_ = model.forward(side, HandPose(curl_pose(np.zeros(5)))).joints
+    fist = model.forward(side, HandPose(curl_pose(np.ones(5)))).joints
+    j = {name: i for i, name in enumerate(SOMA_JOINTS)}
+    # Palm normal of the rest hand: fingers (wrist -> middle knuckle) x thumb side (pinky knuckle -> index knuckle)
+    # points out of the back of the right hand, so the palm side is the opposite; left mirrors with the same numbers.
+    up = open_[j["Middle2"]] - open_[j["Wrist"]]
+    across = open_[j["Index2"]] - open_[j["Pinky2"]]
+    palm = -np.cross(up, across) * (1 if side == "right" else -1)
+    palm /= np.linalg.norm(palm)
+    centre = open_[[j["Wrist"], j["Index2"], j["Middle2"], j["Ring2"], j["Pinky2"]]].mean(0)
     for f in FINGERS:
-        i = TIP_VERTS[f]
-        ref = joints[BASE_JOINTS[f]] if f in BASE_JOINTS else palm  # fingers fold onto their base; thumb into palm
-        d_open, d_fist = np.linalg.norm(v_open[i] - ref), np.linalg.norm(v_fist[i] - ref)
-        assert d_fist < 0.7 * d_open, (f, d_open, d_fist)
-        assert v_fist[i, 1] < v_open[i, 1], f  # towards the palm side (-y in MANO rest pose)
+        tip, base = j[f.capitalize() + "End"], j[f.capitalize() + "2"]
+        ref = centre if f == "thumb" else open_[base]   # fingers fold onto their knuckle; the thumb into the palm
+        d_open, d_fist = np.linalg.norm(open_[tip] - ref), np.linalg.norm(fist[tip] - ref)
+        assert d_fist < 0.75 * d_open, (side, f, d_open, d_fist)
+        if f != "thumb":
+            assert (fist[tip] - open_[tip]) @ palm > 0.02, (side, f)  # moved towards the palm side

@@ -1,11 +1,12 @@
-"""Live WiLoR pose source: YOLO hand detector + WiLoR-mini on a worker thread, fed the latest video frame.
+"""Live WiLoR pose source: YOLO hand detector + WiLoR-mini on a worker thread, fed the latest video frame. WiLoR
+predicts MANO parameters; a second worker converts them to SOMA (hand_viewer/mano/to_soma.py) and emits.
 
 Same model and conventions as encord-scene's `run_wilor`, but with our own patch preprocessing:
 `predict_with_bboxes` Gaussian-blurs the *whole* image once per hand (~52 ms/hand at 1920 px, holding the GIL),
 whereas the patch only ever samples a box around the hand. We blur just that box (padded by the kernel radius, so
 the result is the same) and run all hands through the ViT in one batch.
 
-torch / wilor_mini are imported lazily so importing this module (e.g. to list sources in a menu) stays cheap.
+torch / wilor_mini / SOMA are imported lazily so importing this module (e.g. to list sources in a menu) stays cheap.
 """
 
 from __future__ import annotations
@@ -14,17 +15,25 @@ import threading
 import time
 from dataclasses import dataclass, replace
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import cv2
 import numpy as np
 
-from hand_viewer.core.types import (
-    SIDES, CameraIntrinsics, HandFrame, HandPose, PoseSink, Side, VideoFrame,
-)
+from hand_viewer.core.types import SIDES, CameraIntrinsics, HandFrame, PoseSink, Side, VideoFrame
+
+if TYPE_CHECKING:
+    from hand_viewer.mano.model import ManoParams
+    from hand_viewer.mano.to_soma import ManoToSoma
 
 WEIGHTS_DIR = Path.home() / ".cache" / "wilor-mini"
 PATCH = 256           # WiLoR's input patch size
 RESCALE_FACTOR = 2.5  # patch side = 2.5 x the detector box's longer side (predict_with_bboxes default)
+# YOLO's input size (ultralytics default 640). Measured on the Glue episode (350 frames, 2 hands, M4 Pro): 416 cuts
+# detection from ~28 to ~18 ms, finds the same hands, and moves WiLoR's vertices by a median 2.4 mm (max 25 mm)
+# through the slightly different boxes. Reusing the last pose's box instead of detecting was tried and rejected:
+# it saved more but occasionally lost the hand by metres.
+DETECT_IMGSZ = 416
 
 
 def pick_device(name: str = "auto"):
@@ -164,6 +173,12 @@ class HandResult:
     cam_t: np.ndarray          # (3,) camera frame, principal-point corrected
     vertices: np.ndarray       # (778, 3) WiLoR's (left already mirrored), before cam_t; for checks/overlays
 
+    @property
+    def mano(self) -> ManoParams:
+        from hand_viewer.mano.model import ManoParams
+
+        return ManoParams(self.hand_pose, self.global_orient, self.cam_t, self.betas)
+
 
 class WilorModel:
     """YOLO + WiLoR without threads; used by WilorSource, the benchmark and the tests.
@@ -195,7 +210,8 @@ class WilorModel:
         self.pipe.wilor_model.FOCAL_LENGTH = f
 
     def detect(self, image: np.ndarray, conf: float = 0.3) -> list[Detection]:
-        boxes = self.pipe.hand_detector(image, conf=conf, verbose=False, device=str(self.device))[0].boxes
+        boxes = self.pipe.hand_detector(image, conf=conf, verbose=False, device=str(self.device),
+                                       imgsz=DETECT_IMGSZ)[0].boxes
         return [Detection(np.asarray(b, np.float64), float(c), bool(k))
                 for b, c, k in zip(boxes.xyxy.cpu().numpy(), boxes.conf.cpu().numpy(), boxes.cls.cpu().numpy())]
 
@@ -267,7 +283,8 @@ def _scale_k(k: CameraIntrinsics, w: int, h: int) -> CameraIntrinsics:
 class WilorStats:
     detect_ms: float = 0.0  # last frame: downscale + YOLO
     pose_ms: float = 0.0    # last frame: patches + WiLoR + post-processing
-    total_ms: float = 0.0
+    convert_ms: float = 0.0  # last frame: MANO -> SOMA
+    total_ms: float = 0.0   # detect + pose + convert of one frame (latency; convert overlaps the next frame's pose)
     fps: float = 0.0        # pose updates/s (completion to completion), exponentially smoothed
     processed: int = 0
     dropped: int = 0       # frames replaced in the slot before the worker got to them
@@ -275,7 +292,11 @@ class WilorStats:
 
 class WilorSource:
     """PoseSource + FrameConsumer. `submit_frame` never blocks: it overwrites a one-frame slot, and the worker
-    always takes the newest frame. `stats` is replaced atomically, so any thread can read it."""
+    always takes the newest frame. `stats` is replaced atomically, so any thread can read it.
+
+    Two threads: "wilor" runs YOLO + WiLoR, "wilor-soma" converts its MANO output to SOMA and emits. WiLoR waits on
+    the GPU for most of a frame, so the conversion (~8 ms for both hands) overlaps with the next frame's inference
+    instead of adding to it. The hand-off is another newest-wins slot."""
 
     name = "wilor"
 
@@ -286,10 +307,13 @@ class WilorSource:
         self.stats = WilorStats()
         self._cond = threading.Condition()
         self._slot: VideoFrame | None = None
+        self._estimated: _Estimate | None = None  # WiLoR -> conversion slot, guarded by _cond too
         self._stopping = False
         self._thread: threading.Thread | None = None
+        self._convert_thread: threading.Thread | None = None
         self._tracks: dict[Side, Track] = {}
         self._dropped = 0
+        self._processed = 0
         self._last_done: float | None = None
 
     def start(self, sink: PoseSink) -> None:
@@ -299,18 +323,22 @@ class WilorSource:
         self._thread.start()
 
     def stop(self) -> None:
+        self._halt()
+        for t in (self._thread, self._convert_thread):
+            if t is not None and t is not threading.current_thread():
+                t.join()  # may wait for an in-flight model load / inference to finish
+
+    def _halt(self) -> None:
         with self._cond:
             self._stopping = True
             self._cond.notify_all()
-        if self._thread is not None and self._thread is not threading.current_thread():
-            self._thread.join()  # may wait for an in-flight model load / inference to finish
 
     def submit_frame(self, frame: VideoFrame) -> None:
         with self._cond:
             if self._slot is not None:
                 self._dropped += 1
             self._slot = frame
-            self._cond.notify()
+            self._cond.notify_all()
 
     def _next_frame(self) -> VideoFrame | None:
         with self._cond:
@@ -321,6 +349,15 @@ class WilorSource:
             frame, self._slot = self._slot, None
             return frame
 
+    def _next_estimate(self) -> _Estimate | None:
+        with self._cond:
+            while self._estimated is None and not self._stopping:
+                self._cond.wait()
+            if self._stopping:
+                return None
+            est, self._estimated = self._estimated, None
+            return est
+
     def _run(self, sink: PoseSink) -> None:
         try:
             sink.status("Loading WiLoR…")
@@ -330,19 +367,55 @@ class WilorSource:
             return
         if self._stopping:
             return
+        try:
+            converter = self._load_converter()
+        except Exception as e:  # noqa: BLE001
+            sink.error(f"SOMA hand model failed to load: {type(e).__name__}: {e}")
+            return
+        with self._cond:
+            if self._stopping:
+                return
+            self._convert_thread = threading.Thread(target=self._run_convert, args=(sink, converter),
+                                                    name="wilor-soma", daemon=True)
+            self._convert_thread.start()
         sink.status(f"WiLoR on {model.device.type} ({'fp16' if model.fp16 else 'fp32'})")
         while (frame := self._next_frame()) is not None:
             try:
-                hand_frame = self._process(model, frame)
+                est = self._estimate(model, frame)
             except Exception as e:  # noqa: BLE001
-                sink.error(f"WiLoR failed: {type(e).__name__}: {e}")
+                self._fail(sink, f"WiLoR failed: {type(e).__name__}: {e}")
+                return
+            with self._cond:
+                self._estimated = est
+                self._cond.notify_all()
+
+    def _run_convert(self, sink: PoseSink, converter: ManoToSoma) -> None:
+        while (est := self._next_estimate()) is not None:
+            try:
+                hand_frame = self._convert(converter, est)
+            except Exception as e:  # noqa: BLE001
+                self._fail(sink, f"SOMA conversion failed: {type(e).__name__}: {e}")
                 return
             sink.pose(hand_frame)
+
+    def _fail(self, sink: PoseSink, message: str) -> None:
+        if not self._stopping:
+            sink.error(message)
+        self._halt()  # one thread failing stops the other
 
     def _load(self) -> WilorModel:
         return WilorModel(self.device, self.fp16)
 
-    def _process(self, model: WilorModel, frame: VideoFrame) -> HandFrame:
+    def _load_converter(self) -> ManoToSoma:
+        from hand_viewer.mano.to_soma import ManoToSoma
+
+        return ManoToSoma()
+
+    def _process(self, model: WilorModel, converter: ManoToSoma, frame: VideoFrame) -> HandFrame:
+        """Both stages on the calling thread (benchmarks)."""
+        return self._convert(converter, self._estimate(model, frame))
+
+    def _estimate(self, model: WilorModel, frame: VideoFrame) -> _Estimate:
         t0 = time.perf_counter()
         image, k = prepare(frame, self.input_long_side)
         dets = model.detect(image, self.det_conf)
@@ -350,13 +423,30 @@ class WilorSource:
         hands, self._tracks = assign_sides(dets, self._tracks, switch_after=self.switch_after)
         results = model.estimate(image, hands, k)
         t2 = time.perf_counter()
-        prev, last, self._last_done = self.stats, self._last_done, t2
-        fps = 0.0 if last is None else 1 / (t2 - last) if prev.fps == 0 else 0.8 * prev.fps + 0.2 / (t2 - last)
-        self.stats = WilorStats((t1 - t0) * 1e3, (t2 - t1) * 1e3, (t2 - t0) * 1e3, fps, prev.processed + 1,
-                                self._dropped)
-        return HandFrame(
-            t_ns=frame.t_ns,  # capture time, not inference time
-            hands={r.side: HandPose(r.hand_pose, r.global_orient, r.cam_t, r.betas, "camera", r.detection.conf)
-                   for r in results},
-            source=self.name,
-        )
+        return _Estimate(frame.t_ns, results, (t1 - t0) * 1e3, (t2 - t1) * 1e3)
+
+    def _convert(self, converter: ManoToSoma, est: _Estimate) -> HandFrame:
+        t0 = time.perf_counter()
+        poses = {}
+        if est.results:
+            converted = converter.convert_many([r.side for r in est.results], [r.mano for r in est.results],
+                                               [r.detection.conf for r in est.results])
+            poses = {r.side: p for r, p in zip(est.results, converted)}
+        t1 = time.perf_counter()
+        convert_ms = (t1 - t0) * 1e3
+        prev, last, self._last_done = self.stats, self._last_done, t1
+        fps = 0.0 if last is None else 1 / (t1 - last) if prev.fps == 0 else 0.8 * prev.fps + 0.2 / (t1 - last)
+        self._processed += 1
+        self.stats = WilorStats(est.detect_ms, est.pose_ms, convert_ms, est.detect_ms + est.pose_ms + convert_ms, fps,
+                                self._processed, self._dropped)
+        return HandFrame(t_ns=est.t_ns, hands=poses, source=self.name)  # capture time, not inference time
+
+
+@dataclass(frozen=True)
+class _Estimate:
+    """WiLoR's output for one frame, on its way to the conversion thread."""
+
+    t_ns: int
+    results: list[HandResult]
+    detect_ms: float
+    pose_ms: float

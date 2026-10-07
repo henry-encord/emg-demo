@@ -8,6 +8,7 @@ import os
 import tempfile
 import threading
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
@@ -123,6 +124,7 @@ class FakeModel:
 def fake_source(model) -> WilorSource:
     src = WilorSource("cpu")
     src._load = lambda: model
+    src._load_converter = lambda: None  # FakeModel finds no hands, so nothing is ever converted
     return src
 
 
@@ -149,6 +151,68 @@ def test_latest_frame_wins():
     assert all(p.hands == {} and p.source == "wilor" for p in sink.poses)  # empty frames are still emitted
     assert src.stats.processed == 2 and src.stats.dropped == 2
     assert sink.statuses[0].startswith("Loading") and "cpu" in sink.statuses[-1] and not sink.errors
+
+
+class OneHandModel(FakeModel):
+    """FakeModel that always "finds" a right hand, so every frame goes to the converter."""
+
+    def detect(self, image, conf):
+        super().detect(image, conf)
+        return [wilor.Detection(np.array([0.0, 0, 10, 10]), 0.9, True)]
+
+    def estimate(self, image, hands, k):
+        return [SimpleNamespace(side=side, mano=None, detection=d) for side, d in hands.items()]
+
+
+class BlockingConverter:
+    def __init__(self):
+        self.entered = threading.Semaphore(0)
+        self.release = threading.Semaphore(0)
+
+    def convert_many(self, sides, params, confidence):
+        self.entered.release()
+        assert self.release.acquire(timeout=5)
+        return [SimpleNamespace(side=s) for s in sides]
+
+
+def test_conversion_overlaps_next_inference():
+    model, converter, sink = OneHandModel(), BlockingConverter(), RecordingSink()
+    src = fake_source(model)
+    src._load_converter = lambda: converter
+    src.start(sink)
+    src.submit_frame(frame(1))
+    assert model.entered.acquire(timeout=5)
+    model.release.release()
+    assert converter.entered.acquire(timeout=5)  # frame 1 is converting...
+    src.submit_frame(frame(2))
+    assert model.entered.acquire(timeout=5)      # ...while WiLoR already runs frame 2
+    model.release.release()
+    converter.release.release()
+    assert converter.entered.acquire(timeout=5)
+    converter.release.release()
+    assert sink.got.acquire(timeout=5) and sink.got.acquire(timeout=5)
+    src.stop()
+    assert [p.t_ns for p in sink.poses] == [1, 2] and set(sink.poses[0].hands) == {"right"}
+    assert src.stats.processed == 2 and not sink.errors
+
+
+def test_conversion_failure_goes_to_sink_error_and_stops():
+    model, sink = OneHandModel(), RecordingSink()
+    src = fake_source(model)
+
+    class Boom:
+        def convert_many(self, *args):
+            raise ValueError("bad fit")
+
+    src._load_converter = Boom
+    src.start(sink)
+    src.submit_frame(frame(1))
+    assert model.entered.acquire(timeout=5)
+    model.release.release()
+    assert sink.got.acquire(timeout=5)
+    src._thread.join(timeout=5)
+    assert not src._thread.is_alive() and not src._convert_thread.is_alive()
+    assert sink.errors == ["SOMA conversion failed: ValueError: bad fit"] and not sink.poses
 
 
 def test_stop_is_idempotent_and_silences_sink():
@@ -231,6 +295,19 @@ def test_source_end_to_end(model, frames):
     assert hf.t_ns == frames[0].t_ns and set(hf.hands) == {"left", "right"}
     for pose in hf.hands.values():
         assert pose.frame == "camera" and 0.3 <= pose.confidence <= 1
-        assert pose.hand_pose.shape == (15, 3) and pose.betas.shape == (10,)
-        assert 0.1 < pose.transl[2] < 2.0  # metres in front of the camera
-    assert src.stats.total_ms > 0
+        assert pose.finger_pose.shape == (24, 3) and pose.wrist_orient.shape == (3,) and pose.shape is None
+        assert 0.1 < pose.wrist_position[2] < 2.0  # metres in front of the camera
+    assert src.stats.total_ms > 0 and 0 < src.stats.convert_ms < src.stats.total_ms
+
+
+def test_converter_load_failure_goes_to_sink_error():
+    src, sink = fake_source(FakeModel()), RecordingSink()
+
+    def boom():
+        raise FileNotFoundError("no SOMA assets")
+
+    src._load_converter = boom
+    src.start(sink)
+    assert sink.got.acquire(timeout=5)
+    src.stop()
+    assert sink.errors and "SOMA" in sink.errors[0] and "no SOMA assets" in sink.errors[0] and not sink.poses

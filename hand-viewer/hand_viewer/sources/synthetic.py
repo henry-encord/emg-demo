@@ -1,13 +1,12 @@
-"""SyntheticSource: fingers curling and uncurling on sines. A stand-in for an EMG source: it emits only `hand_pose`
-(no orientation, position or shape), at a steady rate, stamped with the monotonic clock like a real source.
+"""SyntheticSource: fingers curling and uncurling on sines. A stand-in for an EMG source: it emits only `finger_pose`
+(no wrist orientation, position or shape), at a steady rate, stamped with the monotonic clock like a real source.
 
-Flexion axes come from the MANO rest pose (flat_hand_mean, right hand), where joint frames are aligned with the
-model frame: fingers point along -x from the wrist, the thumb lies along +z, and the palm faces -y. Finger joints
-(index, middle, pinky, ring; MANO's hand_pose order) flex about +z, which swings the tips towards -y. The thumb
-flexes about a mix of +x and -y, which bends it into the palm and across towards the little finger. Checked by
-running smplx's MANO (tests/test_synthetic.py does it again).
+Flexion axes come from the SOMA rest pose (right hand): fingers point along -x from the wrist, the palm faces -z and
+the thumb sits on the -y side. Finger joints flex about -y, which swings the tips towards -z (into the palm); the
+metacarpals (…1) stay still, as they mostly do. The thumb flexes about mostly -z with a little +x, which bends it
+across the palm towards the little finger. tests/test_synthetic.py checks both against the SOMA mesh.
 
-Left hands use WiLoR's mirrored convention (see core/types.py): the right-hand rows with y and z negated.
+Both sides use the same numbers: SOMA's left hand mirrors the right for the same pose (see core/types.py).
 """
 
 from __future__ import annotations
@@ -16,23 +15,24 @@ import threading
 
 import numpy as np
 
-from hand_viewer.core.types import SIDES, HandFrame, HandPose, PoseSink, Side, now_ns
+from hand_viewer.core.types import FINGER_JOINTS, SIDES, HandFrame, HandPose, PoseSink, now_ns
 
-FINGERS = ("index", "middle", "pinky", "ring", "thumb")  # MANO hand_pose order, 3 joints each (base -> tip)
-_THUMB_AXIS = np.array([0.8, -0.6, 0.0])
-AXES = np.array([[0.0, 0.0, 1.0]] * 12 + [_THUMB_AXIS] * 3)  # (15, 3) unit flexion axes, right hand
-# Peak flexion (rad) per joint: MCP, PIP, DIP for fingers; CMC, MCP, IP for the thumb.
-MAX_FLEX = np.array([1.3, 1.5, 1.0] * 4 + [0.4, 0.6, 0.9])
+FINGERS = ("thumb", "index", "middle", "ring", "pinky")
+_FINGER_AXIS = np.array([0.0, -1.0, 0.0])
+_THUMB_AXIS = np.array([0.3, 0.0, -1.0]) / np.linalg.norm([0.3, 0.0, -1.0])
+# Peak flexion (rad) per finger_pose row. Thumb: CMC, MCP, IP, end. Others: metacarpal, MCP, PIP, DIP, end.
+_PEAK = {"Thumb": (0.4, 0.6, 0.9, 0.0), "other": (0.0, 1.3, 1.5, 1.0, 0.0)}
+AXES = np.array([_THUMB_AXIS if j.startswith("Thumb") else _FINGER_AXIS for j in FINGER_JOINTS])  # (24, 3)
+MAX_FLEX = np.concatenate([_PEAK["Thumb"]] + [_PEAK["other"]] * 4)                                 # (24,)
+FINGER_OF_ROW = np.array([FINGERS.index(next(f for f in FINGERS if j.lower().startswith(f))) for j in FINGER_JOINTS])
 PHASE = {"index": 0.0, "middle": 0.6, "ring": 1.2, "pinky": 1.8, "thumb": 2.6}  # rad: a wave across the hand
 PERIOD_S = 3.0
-MIRROR = np.array([1.0, -1.0, -1.0])
 
 
-def curl_pose(curl: np.ndarray, side: Side = "right") -> np.ndarray:
-    """MANO hand_pose (15, 3) for per-finger curl amounts in [0, 1] (FINGERS order)."""
-    per_joint = np.repeat(np.asarray(curl, dtype=np.float64), 3) * MAX_FLEX
-    pose = AXES * per_joint[:, None]
-    return pose * MIRROR if side == "left" else pose
+def curl_pose(curl: np.ndarray) -> np.ndarray:
+    """SOMA finger_pose (24, 3) for per-finger curl amounts in [0, 1] (FINGERS order). Same for either side."""
+    per_joint = np.asarray(curl, dtype=np.float64)[FINGER_OF_ROW] * MAX_FLEX
+    return AXES * per_joint[:, None]
 
 
 class SyntheticSource:
@@ -62,7 +62,7 @@ class SyntheticSource:
         for k, side in enumerate(self.sides):
             phase = np.array([PHASE[f] for f in FINGERS]) + k * np.pi / 2  # hands out of step, to tell them apart
             curl = 0.5 - 0.5 * np.cos(2 * np.pi * t / PERIOD_S + phase)
-            hands[side] = HandPose(curl_pose(curl, side))
+            hands[side] = HandPose(curl_pose(curl))
         return HandFrame(t_ns, hands, self.name)
 
     def _run(self, sink: PoseSink) -> None:

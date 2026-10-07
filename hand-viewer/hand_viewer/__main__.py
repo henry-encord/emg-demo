@@ -4,6 +4,8 @@ Usage:
     uv run python -m hand_viewer [--source camera|replay|replay-wilor|synthetic] [--episode DIR]
                                  [--device auto|mps|cuda|cpu] [--camera INDEX] [--smoke-seconds N]
 
+The default source is camera.
+
 replay-wilor plays the recorded video through the live WiLoR path (camera mode without a camera).
 
 Replay and synthetic start fast; torch-heavy WiLoR is only imported when the camera source is picked.
@@ -19,7 +21,7 @@ from pathlib import Path
 
 def main() -> int:
     ap = argparse.ArgumentParser(prog="python -m hand_viewer", description=__doc__.split("\n\n")[0])
-    ap.add_argument("--source", choices=("camera", "replay", "replay-wilor", "synthetic"), default="replay")
+    ap.add_argument("--source", choices=("camera", "replay", "replay-wilor", "synthetic"), default="camera")
     ap.add_argument("--episode", type=Path, help="encord-scene/out/<episode> dir (default: newest with mano.npz)")
     ap.add_argument("--device", choices=("auto", "mps", "cuda", "cpu"), default="auto", help="for WiLoR")
     ap.add_argument("--camera", type=int, help="camera index in the toolbar's list (0 = system default)")
@@ -34,7 +36,7 @@ def main() -> int:
     from PySide6.QtCore import QTimer
     from PySide6.QtWidgets import QApplication
 
-    from hand_viewer.ui.main_window import MainWindow, warn_no_mano
+    from hand_viewer.ui.main_window import MainWindow, warn_no_hand_model
 
     from hand_viewer.ui import theme
 
@@ -50,7 +52,7 @@ def main() -> int:
             app.quit()
         QTimer.singleShot(int(args.smoke_seconds * 1000), finish)
     else:
-        warn_no_mano(win, win)
+        warn_no_hand_model(win, win)
     return app.exec()
 
 

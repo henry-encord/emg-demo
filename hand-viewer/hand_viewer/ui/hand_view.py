@@ -16,17 +16,18 @@ from pyqtgraph import Vector
 from pyqtgraph.opengl.shaders import FragmentShader, ShaderProgram, VertexShader
 from scipy.spatial.transform import Rotation
 
-from hand_viewer.core.mano import ManoModel
-from hand_viewer.core.types import SIDES, HandFrame, HandPose, Side
+from hand_viewer.core.hand_model import HandModel
+from hand_viewer.core.types import NUM_FINGER_JOINTS, SIDES, SOMA_JOINTS, HandFrame, HandPose, Side
 from hand_viewer.ui import theme
 
 # Camera (OpenCV) -> GL scene. Rows map x_cam, y_cam, z_cam into X, Y, Z: a proper rotation (det +1).
 CAM_TO_GL = np.array([[1, 0, 0], [0, 0, 1], [0, -1, 0]], np.float32)
-# Hands without a position: root joints this far apart, this far in front of the camera (camera frame, metres).
+# Hands without a position: wrists this far apart, this far in front of the camera (camera frame, metres).
 ANCHOR_HALF_SPACING = 0.12
 ANCHOR_DEPTH = 0.5
 FLOOR_BELOW = 0.35   # grid this far below the camera
 COLORS = {side: theme.rgba(c) for side, c in theme.HAND_COLORS.items()}   # chart-1 olive, chart-2 blue
+WRIST, INDEX_MCP, MIDDLE_MCP, PINKY_MCP = (SOMA_JOINTS.index(j) for j in ("Wrist", "Index2", "Middle2", "Pinky2"))
 
 # pyqtgraph's built-in "shaded" lights from behind the scene (direction (1,-1,-1) in view space), so surfaces facing
 # the viewer come out near-black. This is the same program with a key light over the viewer's shoulder plus a fill.
@@ -65,7 +66,7 @@ class HandRenderer(ABC):
     widget: QWidget
 
     @abstractmethod
-    def update(self, hand_frame: HandFrame | None, mano: ManoModel) -> None: ...
+    def update(self, hand_frame: HandFrame | None, model: HandModel) -> None: ...
 
     @abstractmethod
     def set_camera_view(self, hfov_deg: float) -> None:
@@ -86,9 +87,9 @@ def _anchor(side: Side) -> np.ndarray:
 
 def _basis(joints: np.ndarray) -> np.ndarray:
     """Columns: fingers direction (wrist -> middle MCP), thumb side (pinky MCP -> index MCP), their cross."""
-    up = joints[9] - joints[0]
+    up = joints[MIDDLE_MCP] - joints[WRIST]
     up = up / np.linalg.norm(up)
-    lat = joints[5] - joints[17]
+    lat = joints[INDEX_MCP] - joints[PINKY_MCP]
     lat = lat - lat.dot(up) * up
     lat = lat / np.linalg.norm(lat)
     return np.stack([up, lat, np.cross(up, lat)], axis=1)
@@ -116,7 +117,7 @@ class PyqtgraphHandRenderer(HandRenderer):
         self._meshes: dict[Side, gl.GLMeshItem] = {}
         self._mesh_data: dict[Side, gl.MeshData] = {}
         self._default_orient: dict[tuple[Side, str], np.ndarray] = {}
-        self._mano: ManoModel | None = None
+        self._model: HandModel | None = None
         self._yaw = 0.0
         self._last: HandFrame | None = None
         self.reset_view()
@@ -135,29 +136,29 @@ class PyqtgraphHandRenderer(HandRenderer):
                                     azimuth=-90, fov=hfov_deg)
 
     def zero_heading(self) -> None:
-        f, mano = self._last, self._mano
-        if f is None or mano is None:
+        f, model = self._last, self._model
+        if f is None or model is None:
             return
         side, pose = next(((s, p) for s, p in sorted(f.hands.items(), key=lambda kv: kv[0] != "right")
-                           if p.frame == "world" and p.global_orient is not None), (None, None))
+                           if p.frame == "world" and p.wrist_orient is not None), (None, None))
         if pose is None:
             return
-        j = mano.forward(side, pose).joints
-        d = j[9] - j[0]
+        j = model.forward(side, pose).joints
+        d = j[MIDDLE_MCP] - j[WRIST]
         # Current heading of the fingers in the horizontal plane; rotate it onto +Y (away from the viewer).
         self._yaw = np.pi / 2 - float(np.arctan2(d[1], d[0]))
 
     # ------------------------------------------------------------------------------------------ hands
 
-    def _orient(self, mano: ManoModel, side: Side, frame: str) -> np.ndarray:
-        """global_orient for a hand that has none: palm towards the viewer, fingers up, thumb outwards.
+    def _orient(self, model: HandModel, side: Side, frame: str) -> np.ndarray:
+        """wrist_orient for a hand that has none: palm towards the viewer, fingers up, thumb outwards.
 
-        Measured from the rest pose rather than hard-coded, so it holds whatever MANO's canonical axes are. With
-        forward()'s mirroring, the left output is R(p) applied to the left rest mesh, so the same solve works per side.
+        Measured from each side's rest pose rather than hard-coded, so it holds whatever SOMA's canonical axes are
+        (wrist_orient is a plain rotation of the rest hand, so target @ rest_basis^T is exactly the one needed).
         """
         key = (side, frame)
         if key not in self._default_orient:
-            rest = mano.forward(side, HandPose(hand_pose=np.zeros((15, 3)))).joints
+            rest = model.forward(side, HandPose(finger_pose=np.zeros((NUM_FINGER_JOINTS, 3)))).joints
             thumb = 1.0 if side == "right" else -1.0
             up = np.array([0, -1, 0] if frame == "camera" else [0, 0, 1], np.float32)
             target = np.stack([up, [thumb, 0, 0], np.cross(up, [thumb, 0, 0])], axis=1)
@@ -165,17 +166,17 @@ class PyqtgraphHandRenderer(HandRenderer):
             self._default_orient[key] = Rotation.from_matrix(r).as_rotvec().astype(np.float32)
         return self._default_orient[key]
 
-    def _mesh_item(self, side: Side, mano: ManoModel) -> tuple[gl.GLMeshItem, gl.MeshData]:
-        if side not in self._meshes or self._mano is not mano:
+    def _mesh_item(self, side: Side, model: HandModel) -> tuple[gl.GLMeshItem, gl.MeshData]:
+        if side not in self._meshes or self._model is not model:
             if side in self._meshes:
                 self.widget.removeItem(self._meshes[side])
-            md = gl.MeshData(vertexes=np.zeros((778, 3), np.float32), faces=mano.faces(side))
+            md = gl.MeshData(vertexes=np.zeros((model.num_vertices, 3), np.float32), faces=model.faces(side))
             item = gl.GLMeshItem(meshdata=md, smooth=True, shader=HEADLIGHT, color=COLORS[side], glOptions="opaque")
             self.widget.addItem(item)
             self._meshes[side], self._mesh_data[side] = item, md
         return self._meshes[side], self._mesh_data[side]
 
-    def update(self, hand_frame: HandFrame | None, mano: ManoModel) -> None:
+    def update(self, hand_frame: HandFrame | None, model: HandModel) -> None:
         self._last = hand_frame
         hands = hand_frame.hands if hand_frame is not None else {}
         for side in SIDES:
@@ -184,21 +185,21 @@ class PyqtgraphHandRenderer(HandRenderer):
                 if side in self._meshes:
                     self._meshes[side].setVisible(False)
                 continue
-            item, md = self._mesh_item(side, mano)
-            md.setVertexes(self._vertices(side, pose, mano))
+            item, md = self._mesh_item(side, model)
+            md.setVertexes(self._vertices(side, pose, model))
             item.meshDataChanged()
             item.setVisible(True)
-        self._mano = mano
+        self._model = model
 
-    def _vertices(self, side: Side, pose: HandPose, mano: ManoModel) -> np.ndarray:
-        orient = self._orient(mano, side, pose.frame)
+    def _vertices(self, side: Side, pose: HandPose, model: HandModel) -> np.ndarray:
+        orient = self._orient(model, side, pose.frame)
         if pose.frame == "camera":
-            v = mano.forward(side, pose, default_orient=orient, anchor=_anchor(side)).vertices
+            v = model.forward(side, pose, default_orient=orient, anchor=_anchor(side)).vertices
             return v @ CAM_TO_GL.T
         anchor = _anchor(side) @ CAM_TO_GL.T   # same on-screen spot, expressed in the z-up frame
-        mesh = mano.forward(side, pose, default_orient=orient, anchor=anchor)
+        mesh = model.forward(side, pose, default_orient=orient, anchor=anchor)
         if self._yaw == 0.0:
             return mesh.vertices
         # Yaw about the world origin when the source gives positions (keeps the hands' layout), else the wrist.
-        pivot = np.zeros(3, np.float32) if pose.transl is not None else anchor
+        pivot = np.zeros(3, np.float32) if pose.wrist_position is not None else anchor
         return (mesh.vertices - pivot) @ _yaw(self._yaw).T + pivot

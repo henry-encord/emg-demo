@@ -5,10 +5,10 @@ while the UI renders at ~60 Hz. `push` filters each sample as it arrives; `sampl
 (t - render delay) so there are usually two filtered samples to interpolate between, which turns a 5 Hz stream
 into smooth motion at the cost of about one sample interval of extra latency.
 
-Rotations (global_orient + 15 hand_pose joints) are filtered as unit quaternions in the tangent space around the
+Rotations (wrist_orient + 24 finger_pose joints) are filtered as unit quaternions in the tangent space around the
 previous filtered value (the relative rotation's log), with a hemisphere check so q and -q are treated as the same
-rotation. Translation is filtered as a plain vector. Betas are frozen to the per-component median of the first N
-samples of a hand, since hand shape doesn't change and letting it float only adds jitter. None fields stay None.
+rotation. The wrist position is filtered as a plain vector. Shape is frozen to the per-component median of the first N
+samples of a hand, since a hand's shape doesn't change and letting it float only adds jitter. None fields stay None.
 """
 
 from __future__ import annotations
@@ -18,19 +18,20 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from hand_viewer.core.types import HandFrame, HandPose, Side, now_ns
+from hand_viewer.core.types import NUM_FINGER_JOINTS, HandFrame, HandPose, Side, now_ns
 
 # A new sample further than this from the previous one of the same hand starts a fresh track (no filtering or
-# interpolation across the gap). Betas are re-estimated once a hand has been gone this long.
-BETAS_RESET_NS = 2_000_000_000
+# interpolation across the gap). Shape is re-estimated once a hand has been gone this long.
+SHAPE_RESET_NS = 2_000_000_000
 MAX_AUTO_DELAY_MS = 400.0
 # Intervals/latencies above this are gaps or foreign clocks, not the stream's rate, and aren't averaged in.
 MAX_MEASURED_NS = 1_000_000_000
 EMA_ALPHA = 0.1
-# One-Euro's beta multiplies speed. Rotations are in rad/s; scale transl (m/s) so 10 cm/s counts like 1 rad/s,
+# One-Euro's beta multiplies speed. Rotations are in rad/s; scale position (m/s) so 10 cm/s counts like 1 rad/s,
 # roughly the same visual motion for a hand, and one beta works for both.
-TRANSL_SPEED_SCALE = 10.0
+POSITION_SPEED_SCALE = 10.0
 HISTORY = 64
+ROWS = 1 + NUM_FINGER_JOINTS  # wrist + finger joints
 
 
 @dataclass
@@ -41,7 +42,7 @@ class SmoothingConfig:
     d_cutoff: float = 1.0                 # Hz; cutoff for the speed estimate
     render_delay_ms: float | None = None  # None = auto (about one measured pose interval plus arrival latency)
     hold_ms: float = 300                  # keep a lost hand this long, then drop it
-    freeze_betas_after: int = 10          # median of first N frames per hand; 0 = never
+    freeze_shape_after: int = 10          # median of first N frames per hand; 0 = never
 
     @classmethod
     def for_rate(cls, hz: float) -> SmoothingConfig:
@@ -125,10 +126,10 @@ class _Filtered:
     """One filtered sample of one hand (internal representation: quaternions, float64)."""
 
     t_ns: int
-    rot: np.ndarray                 # (16, 4): row 0 global_orient (identity if absent), rows 1.. hand_pose
+    rot: np.ndarray                 # (25, 4): row 0 wrist_orient (identity if absent), rows 1.. finger_pose
     has_orient: bool
-    transl: np.ndarray | None
-    betas: np.ndarray | None
+    position: np.ndarray | None
+    shape: np.ndarray | None
     frame: str
     confidence: float
 
@@ -138,11 +139,11 @@ class _Track:
     """Filter state and recent filtered samples for one hand."""
 
     last: _Filtered | None = None
-    rot_speed: np.ndarray = field(default_factory=lambda: np.zeros((16, 3)))
-    transl_speed: np.ndarray = field(default_factory=lambda: np.zeros(3))
+    rot_speed: np.ndarray = field(default_factory=lambda: np.zeros((ROWS, 3)))
+    position_speed: np.ndarray = field(default_factory=lambda: np.zeros(3))
     history: deque = field(default_factory=lambda: deque(maxlen=HISTORY))
-    betas_seen: list = field(default_factory=list)
-    betas_frozen: np.ndarray | None = None
+    shapes_seen: list = field(default_factory=list)
+    shape_frozen: np.ndarray | None = None
     last_seen_ns: int | None = None
 
 
@@ -194,27 +195,27 @@ class PoseSmoother:
 
     def _push_hand(self, tr: _Track, t_ns: int, pose: HandPose) -> None:
         cfg = self.config
-        if tr.last_seen_ns is not None and t_ns - tr.last_seen_ns > BETAS_RESET_NS:
-            tr.betas_seen.clear()
-            tr.betas_frozen = None
+        if tr.last_seen_ns is not None and t_ns - tr.last_seen_ns > SHAPE_RESET_NS:
+            tr.shapes_seen.clear()
+            tr.shape_frozen = None
         if tr.last is not None and t_ns - tr.last.t_ns > cfg.hold_ms * 1e6:
             tr.last = None  # hand was lost: start a fresh track instead of gliding in from the old pose
             tr.history.clear()
         tr.last_seen_ns = t_ns
 
-        has_orient = pose.global_orient is not None
-        rv = np.zeros((16, 3))
-        rv[1:] = pose.hand_pose
+        has_orient = pose.wrist_orient is not None
+        rv = np.zeros((ROWS, 3))
+        rv[1:] = pose.finger_pose
         if has_orient:
-            rv[0] = pose.global_orient
+            rv[0] = pose.wrist_orient
         rot = quat_from_rotvec(rv)
-        transl = None if pose.transl is None else pose.transl.astype(np.float64)
-        betas = self._betas(tr, pose.betas)
+        position = None if pose.wrist_position is None else pose.wrist_position.astype(np.float64)
+        shape = self._shape(tr, pose.shape)
 
         prev = tr.last
         if prev is None:
             tr.rot_speed[:] = 0
-            tr.transl_speed[:] = 0
+            tr.position_speed[:] = 0
         else:
             dt = (t_ns - prev.t_ns) * 1e-9
             base = prev.rot
@@ -222,32 +223,32 @@ class PoseSmoother:
                 base = base.copy()
                 base[0] = rot[0]  # orientation appeared or vanished: nothing to filter against
                 tr.rot_speed[0] = 0
-            delta = quat_log_rel(base, rot)  # (16, 3)
+            delta = quat_log_rel(base, rot)  # (ROWS, 3)
             tr.rot_speed += _alpha(cfg.d_cutoff, dt) * (delta / dt - tr.rot_speed)
             a = _alpha(cfg.min_cutoff + cfg.beta * np.linalg.norm(tr.rot_speed, axis=1), dt)
             rot = quat_step(base, delta * a[:, None])
-            if transl is not None and prev.transl is not None:
-                d = transl - prev.transl
-                tr.transl_speed += _alpha(cfg.d_cutoff, dt) * (d / dt - tr.transl_speed)
-                a = _alpha(cfg.min_cutoff + cfg.beta * TRANSL_SPEED_SCALE * np.linalg.norm(tr.transl_speed), dt)
-                transl = prev.transl + a * d
+            if position is not None and prev.position is not None:
+                d = position - prev.position
+                tr.position_speed += _alpha(cfg.d_cutoff, dt) * (d / dt - tr.position_speed)
+                a = _alpha(cfg.min_cutoff + cfg.beta * POSITION_SPEED_SCALE * np.linalg.norm(tr.position_speed), dt)
+                position = prev.position + a * d
             else:
-                tr.transl_speed[:] = 0
+                tr.position_speed[:] = 0
 
-        tr.last = _Filtered(t_ns, rot, has_orient, transl, betas, pose.frame, pose.confidence)
+        tr.last = _Filtered(t_ns, rot, has_orient, position, shape, pose.frame, pose.confidence)
         tr.history.append(tr.last)
 
-    def _betas(self, tr: _Track, betas: np.ndarray | None) -> np.ndarray | None:
-        n = self.config.freeze_betas_after
-        if betas is None or n <= 0:
-            return betas
-        if tr.betas_frozen is not None:
-            return tr.betas_frozen
-        tr.betas_seen.append(betas)
-        med = np.median(np.stack(tr.betas_seen), axis=0).astype(np.float32)
-        if len(tr.betas_seen) >= n:
-            tr.betas_frozen = med
-            tr.betas_seen.clear()
+    def _shape(self, tr: _Track, shape: np.ndarray | None) -> np.ndarray | None:
+        n = self.config.freeze_shape_after
+        if shape is None or n <= 0:
+            return shape
+        if tr.shape_frozen is not None:
+            return tr.shape_frozen
+        tr.shapes_seen.append(shape)
+        med = np.median(np.stack(tr.shapes_seen), axis=0).astype(np.float32)
+        if len(tr.shapes_seen) >= n:
+            tr.shape_frozen = med
+            tr.shapes_seen.clear()
         return med
 
     def sample(self, t_ns: int) -> HandFrame | None:
@@ -282,7 +283,7 @@ class PoseSmoother:
 
 def _to_pose(f: _Filtered) -> HandPose:
     rv = rotvec_from_quat(f.rot)
-    return HandPose(rv[1:], rv[0] if f.has_orient else None, f.transl, f.betas, f.frame, f.confidence)
+    return HandPose(rv[1:], rv[0] if f.has_orient else None, f.position, f.shape, f.frame, f.confidence)
 
 
 def _interp(a: _Filtered, b: _Filtered, u: float) -> HandPose:
@@ -290,8 +291,8 @@ def _interp(a: _Filtered, b: _Filtered, u: float) -> HandPose:
     rot = slerp(a.rot, b.rot, u)
     rv = rotvec_from_quat(rot)
     orient = rv[0] if a.has_orient and b.has_orient else rotvec_from_quat(near.rot[0]) if near.has_orient else None
-    if a.transl is not None and b.transl is not None:
-        transl = a.transl + u * (b.transl - a.transl)
+    if a.position is not None and b.position is not None:
+        position = a.position + u * (b.position - a.position)
     else:
-        transl = near.transl
-    return HandPose(rv[1:], orient, transl, near.betas, near.frame, a.confidence + u * (b.confidence - a.confidence))
+        position = near.position
+    return HandPose(rv[1:], orient, position, near.shape, near.frame, a.confidence + u * (b.confidence - a.confidence))

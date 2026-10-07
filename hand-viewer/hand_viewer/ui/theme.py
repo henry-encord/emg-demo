@@ -124,6 +124,7 @@ def stylesheet() -> str:
     }}
     QPushButton#primary:focus {{ border: 2px solid {FOCUS_RING}; }}
     QPushButton#icon {{ padding: 0; min-width: {CONTROL_MD - 2}px; max-width: {CONTROL_MD - 2}px; }}
+    QPushButton#icon:checked {{ background: {SAND_ACTIVE}; border-color: {MUTED_BORDER}; }}
 
     QComboBox {{
         min-height: {CONTROL_MD - 2}px; max-height: {CONTROL_MD - 2}px; padding: 0 8px 0 11px;
@@ -203,6 +204,7 @@ class Card(QFrame):
         self.header_layout = QHBoxLayout(header)
         self.header_layout.setContentsMargins(SPACE[4], SPACE[2], SPACE[3], SPACE[2])
         self.header_layout.setSpacing(SPACE[2])
+        self.header = header
         heading = QLabel(title)
         heading.setFont(display_font(16))
         heading.setFixedHeight(CONTROL_MD)
@@ -241,6 +243,11 @@ class LegendDot(QWidget):
         text.setObjectName("caption")
         lay.addWidget(dot)
         lay.addWidget(text)
+
+
+def icon(name: str) -> QIcon:
+    """An SVG from assets/, e.g. icon("settings")."""
+    return QIcon(str(ASSETS / f"{name}.svg"))
 
 
 def logo(height: int = 22) -> QSvgWidget:

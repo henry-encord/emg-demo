@@ -12,7 +12,7 @@ import cv2
 import numpy as np
 import pytest
 
-from hand_viewer.core.types import SIDES, FrameSource, PoseSource, now_ns
+from hand_viewer.core.types import SIDES, FrameSource, HandPose, PoseSource, now_ns
 from hand_viewer.sources.replay import Replay, decode_frame
 
 REAL_EPISODE = Path(__file__).resolve().parents[2] / "encord-scene/out/sub-P001Fer_task-Glue_ep-005"
@@ -21,6 +21,30 @@ GAP = 50_000_000  # 20 fps
 N = 5
 W, H = 64, 40
 K = [50.0, 0, 31.5, 0, 52.0, 19.5, 0, 0, 1]
+
+
+class FakeConverter:
+    """Stands in for ManoToSoma (real conversion: tests/test_to_soma.py), so these tests stay fast and timing-exact.
+    Encodes the inputs it was given: the wrist position is the row's cam_t, finger_pose[0, 0] its first MANO value."""
+
+    def __init__(self):
+        self.calls = []
+
+    def convert(self, side, params, confidence=None):
+        self.calls.append((side, len(params)))
+        conf = [1.0] * len(params) if confidence is None else confidence
+        return [HandPose(np.full((24, 3), p.hand_pose[0, 0]), None, p.transl, None, "camera", float(c))
+                for p, c in zip(params, conf)]
+
+
+@pytest.fixture(autouse=True)
+def fake_converter(monkeypatch, request, tmp_path):
+    monkeypatch.setattr("hand_viewer.sources.replay.CACHE_DIR", tmp_path / "soma-cache")  # never the real one
+    if "real_conversion" in request.keywords:
+        return None
+    fake = FakeConverter()
+    monkeypatch.setattr("hand_viewer.mano.to_soma.ManoToSoma", lambda: fake)
+    return fake
 
 
 class Sink:
@@ -46,6 +70,7 @@ class Sink:
 
 
 def make_episode(root: Path, *, frames=True, n=N) -> Path:
+    root.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(0)
     times = T0 + GAP * np.arange(n, dtype=np.int64)
     res = {"log_time_ns": times, "faces": np.zeros((1, 3), np.int32)}
@@ -169,7 +194,7 @@ def test_stop_interrupts_long_sleep(tmp_path):
     assert len(ps.snapshot()) == 1
 
 
-def test_poses_for_known_row(episode):
+def test_poses_for_known_row(episode, fake_converter):
     r = Replay(episode)
     m = np.load(episode / "mano.npz")
     f1 = r.pose_source.hand_frame(1, 123)
@@ -178,11 +203,11 @@ def test_poses_for_known_row(episode):
     assert set(f2.hands) == {"left", "right"}
     for side, score in (("left", 0.9), ("right", 0.7)):
         h = f2.hands[side]
-        np.testing.assert_array_equal(h.hand_pose, m[f"{side}_hand_pose"][2].reshape(15, 3))
-        np.testing.assert_array_equal(h.global_orient, m[f"{side}_global_orient"][2])  # left passed through as-is
-        np.testing.assert_array_equal(h.transl, m[f"{side}_cam_t"][2])
-        np.testing.assert_array_equal(h.betas, m[f"{side}_betas"][2])
+        assert h.finger_pose[0, 0] == pytest.approx(m[f"{side}_hand_pose"][2][0])  # row 2's params, this side's
+        np.testing.assert_array_equal(h.wrist_position, m[f"{side}_cam_t"][2])
         assert h.frame == "camera" and h.confidence == pytest.approx(score)
+    # Converted once, batched per side: left has rows 0, 2, 4; right all 5.
+    assert fake_converter.calls == [("left", 3), ("right", N)]
 
 
 def test_frame_content_and_intrinsics(episode):
@@ -231,10 +256,12 @@ def test_validation(tmp_path):
         Replay(ep)
 
 
+@pytest.mark.real_conversion
 @pytest.mark.skipif(not REAL_EPISODE.is_dir(), reason="real episode not downloaded")
 def test_real_episode_smoke():
     r = Replay(REAL_EPISODE)
     assert r.num_frames == r.num_rows > 0
+    r.pose_source.convert()  # the few-second MANO -> SOMA pass, done up front so the timed run below is all playback
     fs, ps = run_both(r, 0.5)
     assert not fs.errors and not ps.errors
     frames, poses = [f for _, f in fs.snapshot()], [f for _, f in ps.snapshot()]
@@ -243,3 +270,73 @@ def test_real_episode_smoke():
     assert f.image.shape == (600, 960, 3) and f.intrinsics.width == 960
     assert f.intrinsics.fx == pytest.approx(734.2565796842308 / 2)
     assert {p.t_ns for p in poses} >= {f.t_ns for f in frames[:-1]}
+
+
+def test_stop_during_conversion_is_prompt(tmp_path, monkeypatch):
+    class SlowConverter(FakeConverter):
+        def convert(self, side, params, confidence=None):
+            time.sleep(0.1)
+            return super().convert(side, params, confidence)
+
+    monkeypatch.setattr("hand_viewer.sources.replay.CONVERT_CHUNK", 1)  # one row per batch: 0.1 s each
+    slow = SlowConverter()
+    monkeypatch.setattr("hand_viewer.mano.to_soma.ManoToSoma", lambda: slow)
+    r = Replay(make_episode(tmp_path, n=40))
+    ps = Sink()
+    r.pose_source.start(ps)
+    time.sleep(0.15)
+    start = time.monotonic()
+    r.pose_source.stop()
+    assert time.monotonic() - start < 0.3  # at most one more batch, not all 60 (20 left + 40 right)
+    assert ps.statuses == ["Converting MANO to SOMA…"] and not ps.snapshot() and not ps.errors
+    assert not (tmp_path / "soma-cache").exists()  # a cancelled conversion caches nothing
+
+
+def test_conversion_is_cached(tmp_path, fake_converter):
+    ep = make_episode(tmp_path / "ep")
+    first = Replay(ep).pose_source
+    ps = Sink()
+    first.start(ps)
+    deadline = time.monotonic() + 5
+    while not any(m.startswith("Replaying") for m in ps.statuses) and time.monotonic() < deadline:
+        time.sleep(0.01)
+    first.stop()
+    calls = len(fake_converter.calls)
+    assert calls and len(list((tmp_path / "soma-cache").glob("*.npz"))) == 1
+
+    second = Replay(ep).pose_source
+    ps2 = Sink()
+    second.start(ps2)
+    time.sleep(0.1)
+    second.stop()
+    assert len(fake_converter.calls) == calls  # served from the cache
+    assert "Converting MANO to SOMA…" not in ps2.statuses and ps2.snapshot() and not ps2.errors
+    for side in SIDES:
+        want, got = first.convert()[side], second.convert()[side]
+        assert want.keys() == got.keys()
+        for row in want:
+            np.testing.assert_allclose(got[row].finger_pose, want[row].finger_pose, rtol=1e-6)
+            np.testing.assert_allclose(got[row].wrist_position, want[row].wrist_position, rtol=1e-6)
+            assert got[row].wrist_orient is None and got[row].confidence == pytest.approx(want[row].confidence)
+
+
+def test_cache_key_follows_content_and_bad_files_reconvert(tmp_path, fake_converter):
+    ep = make_episode(tmp_path / "ep")
+    Replay(ep).pose_source.convert()
+    (path,) = (tmp_path / "soma-cache").glob("*.npz")
+    n = len(fake_converter.calls)
+    path.write_bytes(b"not an npz")
+    Replay(ep).pose_source.convert()
+    assert len(fake_converter.calls) == 2 * n  # unreadable cache: converted again (and rewritten)
+    Replay(ep).pose_source.convert()
+    assert len(fake_converter.calls) == 2 * n
+
+    other = make_episode(tmp_path / "other", n=N + 1)
+    Replay(other).pose_source.convert()
+    assert len(fake_converter.calls) > 2 * n and len(list((tmp_path / "soma-cache").glob("*.npz"))) == 2
+
+
+def test_injected_converter_bypasses_cache(episode, tmp_path):
+    fake = FakeConverter()
+    Replay(episode, converter=fake).pose_source.convert()
+    assert fake.calls and not (tmp_path / "soma-cache").exists()
